@@ -1,0 +1,6 @@
+[submodule "distributed-system"]
+	path = distributed-system
+	url = https://github.com/Puget-Sound-Bitmaps/distributed-system.git
+[submodule "bitmap-engine"]
+	path = bitmap-engine
+	url = https://github.com/Puget-Sound-Bitmaps/bitmap-engine.git
