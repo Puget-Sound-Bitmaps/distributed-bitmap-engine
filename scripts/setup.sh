@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check for Ubuntu
-if [[ $(lsb_release -a) != *"Ubuntu"* ]]; then
+if [[ $(lsb_release -i) != *"Ubuntu"* ]]; then
   echo "The setup script currently only supports systems running Ubuntu."
   exit 1
 fi
