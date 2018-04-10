@@ -1,23 +1,7 @@
 #!/bin/bash
 
 echo "Building and Starting Distributed Bitmap Engine"
-DIR=/tmp/dbe
-
-# Fist argument is the type of node [master|slave]
-NODETYPE=$1
-
-# Assign binary file depending on argument, quitting if invalid.
-if [[ NODETYPE == "master" ]]
-then
-    BINARY="dbms"
-elif [[ NODETYPE == "slave" ]]
-then
-    BINARY="slave"
-else
-    echo "`$1` is not a valid argument."
-    echo "Usage: startup.sh [master|slave]"
-    exit 1
-fi
+DIR="~/distributed-bitmap-engine"
 
 # Rebuild and run necessary preparatory commands.
 sudo rpcbind
@@ -28,5 +12,18 @@ make
 cd $DIR/distributed-system
 make
 
-cd $DIR/distributed-system/bin
-./$BINARY
+# Fist argument is the type of node [master|slave]
+NODETYPE=$1
+
+# Assign binary file depending on argument, quitting if invalid.
+if [[ NODETYPE == "slave" ]]
+then
+    make spawn_slave
+elif [[ NODETYPE == "master" ]]
+then
+    make basic_test
+else
+    echo "`$1` is not a valid argument."
+    echo "Usage: startup.sh [master|slave]"
+    exit 1
+fi
