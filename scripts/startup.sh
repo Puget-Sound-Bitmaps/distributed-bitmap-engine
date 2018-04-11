@@ -12,6 +12,7 @@ cd $DIR/distributed-system
 NODETYPE=$1
 
 make
+echo "Make finished..."
 
 # Assign binary file depending on argument, quitting if invalid.
 if [[ $NODETYPE == "slave" ]]
