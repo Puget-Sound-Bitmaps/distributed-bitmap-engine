@@ -45,6 +45,7 @@ then
     sudo apt-get --yes install libc-dev-bin # RPCgen
     sudo apt-get --yes install libssl-dev   # OpenSSL
     sudo apt-get --yes install make         # Make
+    sudo apt-get --yes install git          # Git
     touch $DEPENDFILE
 else
     echo "Assuming System Has Dependencies"

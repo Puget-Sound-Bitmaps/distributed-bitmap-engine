@@ -59,11 +59,11 @@ for username, hostname in slaves:
         # Remove local copy if it exits.
         "rm -rf {dir}".format(dir=(git_dir.format(username=username))),
 
-        # Clone a clean copy.
-        "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=(git_dir.format(username=username))),
-
         # Run local setup script.
         "bash {dir}/scripts/setup.sh".format(dir=(git_dir.format(username=username))),
+
+        # Clone a clean copy.
+        "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=(git_dir.format(username=username))),
 
         # Ensure rpc is bound.
         "sudo rpcbind",
@@ -102,11 +102,11 @@ master_setup = [
     # Remove local copy if it exits.
     "rm -rf {dir}".format(dir=(git_dir.format(username=username))),
 
-    # Clone a clean copy.
-    "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=(git_dir.format(username=username))),
-
     # Run local setup script.
     "bash {dir}/scripts/setup.sh".format(dir=(git_dir.format(username=username))),
+
+    # Clone a clean copy.
+    "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=(git_dir.format(username=username))),
 
     # Ensure rpc is bound.
     "sudo rpcbind",
