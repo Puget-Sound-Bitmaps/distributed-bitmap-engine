@@ -10,7 +10,7 @@ cd $DIR/distributed-system
 
 # Fist argument is the type of node [master|slave]
 NODETYPE=$1
-
+echo "Starting make"
 make
 echo "Make finished..."
 
