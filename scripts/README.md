@@ -11,7 +11,7 @@ the system, and starting up the system for testing.
 In order to use the provided scripts, you will need to create configuration
 files used in the connecting process. These files will resemble the following:
 ```python
-ssh_key = "~/.ssh/key-name.pem"
+ssh_key = "/home/ubuntu/.ssh/key-name.pem"
 
 master_node = ("ubuntu", "0.1.2.3")
 
@@ -28,12 +28,22 @@ component and the IP address as the second. You may create multiple such
 configuration files so as to facilitate testing multiple system setups (e.g.,
 varying the number of nodes).
 
+You will also need to install `paramiko` either through `pip` (or `pip3`) or your preferred
+python module manager.
+
 ### Usage
 
 From your computer, you will run the `dbe-setup-and-run.py` script which will
 call the other scripts as needed. `dbe-setup-and-run.py` will run `setup.sh` and
 `startup.sh` on each of the nodes. This will first ensure the nodes have all
 necessary requirements and then build and run the system.
+
+A prototypical usage will be:
+```shell
+$ python3 dbe-setup-and-run.py servers.py master
+```
+Where `servers.py` is your configuration file (described under Setup, above) and
+`master` is the desired branch.
 
 ### Notes
 

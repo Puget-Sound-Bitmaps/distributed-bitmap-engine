@@ -37,19 +37,19 @@ common_setup = [
     # Remove local copy if it exits.
     "rm -rf {dir}".format(dir=git_dir),
     # Clone a clean copy.
-    "git clone -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=git_dir),
+    "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=git_dir),
     # Run local setup script.
     "bash {dir}/scripts/setup.sh".format(dir=git_dir)
 ]
 
 master_setup = common_setup + [
     # Run local startup script.
-    "bash {dir}/scripts/startup.sh master".format(dir=git_dir)
+    "cd {dir}/scripts/ && chmod +x startup.sh && ./startup.sh master".format(dir=git_dir)
 ]
 
 slave_setup = common_setup + [
     # Run local startup script.
-    "bash {dir}/scripts/startup.sh slave".format(dir=git_dir)
+    "cd {dir}/scripts/ && chmod +x startup.sh && ./startup.sh slave".format(dir=git_dir)
 ]
 
 pkey = paramiko.RSAKey.from_private_key_file(servers.ssh_key)
@@ -59,7 +59,7 @@ client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 print("-"*80)
 
 # Slave Nodes
-for username, hostname in servers.slave_list:
+for username, hostname in servers.slave_nodes:
     print("Connecting to {} as {}.".format(hostname, username))
     client.connect(hostname = hostname, username = username, pkey = pkey )
 
