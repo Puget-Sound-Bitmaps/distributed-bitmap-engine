@@ -65,7 +65,7 @@ for username, hostname in servers.slave_nodes:
         "bash {dir}/scripts/setup.sh".format(dir=(git_dir.format(username=username))),
 
         # Run local startup script.
-        "cd {dir}/scripts/ && chmod +x startup.sh && ./startup.sh slave".format(dir=(git_dir.format(username=username)))
+        "bash {dir}/scripts/startup.sh slave".format(dir=(git_dir.format(username=username)))
     ]
 
     for command in slave_setup:
@@ -104,7 +104,7 @@ master_setup = [
     "bash {dir}/scripts/setup.sh".format(dir=(git_dir.format(username=username))),
 
     # Run local startup script.
-    "cd {dir}/scripts/ && chmod +x startup.sh && ./startup.sh master".format(dir=(git_dir.format(username=username)))
+    "bash {dir}/scripts/startup.sh master".format(dir=(git_dir.format(username=username)))
 ]
 
 for command in master_setup:
