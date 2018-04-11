@@ -19,12 +19,12 @@ if [[ $NODETYPE == "slave" ]]
 then
     echo "Starting slave..."
     cd $DIR/distributed-system/bin
-    nohup ./slave &
+    # nohup ./slave &
 elif [[ $NODETYPE == "master" ]]
 then
     echo "Starting master..."
     cd $DIR/distributed-system/bin
-    nohup ./dbms 0 &
+    # nohup ./dbms 0 &
 else
     echo "`$NODETYPE` is not a valid argument."
     echo "Usage: startup.sh [master|slave]"

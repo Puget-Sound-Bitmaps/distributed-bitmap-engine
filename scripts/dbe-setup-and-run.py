@@ -45,12 +45,14 @@ pkey = paramiko.RSAKey.from_private_key_file(servers.ssh_key)
 client = paramiko.SSHClient()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+slaves = sorted(list(servers.slave_nodes))
+
 #########################
 # CONFIGURE SLAVE NODES #
 #########################
 
 # Slave Nodes
-for username, hostname in servers.slave_nodes:
+for username, hostname in slaves:
     print("SLAVE: Connecting to {} as {}.".format(hostname, username))
     client.connect(hostname=hostname, username=username, pkey=pkey)
 
