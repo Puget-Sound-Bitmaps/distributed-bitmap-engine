@@ -14,10 +14,10 @@ NODETYPE=$1
 # Assign binary file depending on argument, quitting if invalid.
 if [[ $NODETYPE == "slave" ]]
 then
-    make spawn_slave &
+    nohup make spawn_slave &
 elif [[ $NODETYPE == "master" ]]
 then
-    make basic_test
+    nohup make basic_test &
 else
     echo "`$NODETYPE` is not a valid argument."
     echo "Usage: startup.sh [master|slave]"
