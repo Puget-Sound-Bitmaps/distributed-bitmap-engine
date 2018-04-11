@@ -31,7 +31,7 @@ else
 fi
 
 # We only check dependencies if it has been at least one day since we last checked.
-if test `find $DEPENDFILE -mmin +1440`
+if test true #`find $DEPENDFILE -mmin +1440`
 then
     echo "Ensuring System Has Dependencies"
     sudo apt-get --yes install default-jdk  # Java
@@ -42,10 +42,10 @@ then
     sudo apt-get --yes install python3-dev  # Python
 
     sudo apt-get --yes install gcc          # C Compiler
+    sudo apt-get --yes install rpcbind      # RPC Bind
     sudo apt-get --yes install libc-dev-bin # RPCgen
     sudo apt-get --yes install libssl-dev   # OpenSSL
     sudo apt-get --yes install make         # Make
-    sudo apt-get --yes install git          # Git
     touch $DEPENDFILE
 else
     echo "Assuming System Has Dependencies"
