@@ -42,8 +42,8 @@ git_dir = "/home/{username}/distributed-bitmap-engine"
 git_url = "https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine.git"
 
 pkey = paramiko.RSAKey.from_private_key_file(servers.ssh_key)
-client = paramiko.SSHClient()
-client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 slaves = sorted(list(servers.slave_nodes))
 
@@ -54,7 +54,7 @@ slaves = sorted(list(servers.slave_nodes))
 # Slave Nodes
 for username, hostname in slaves:
     print("SLAVE: Connecting to {} as {}.".format(hostname, username))
-    client.connect(hostname=hostname, username=username, pkey=pkey)
+    ssh.connect(hostname=hostname, username=username, pkey=pkey)
 
     slave_setup = [
         # Remove local copy if it exits.
@@ -66,14 +66,20 @@ for username, hostname in slaves:
         # Run local setup script.
         "bash {dir}/scripts/setup.sh".format(dir=(git_dir.format(username=username))),
 
-        # Run local startup script.
-        "bash {dir}/scripts/startup.sh slave".format(dir=(git_dir.format(username=username)))
+        # Ensure rpc is bound.
+        "sudo rpcbind",
+
+        # Build system.
+        "cd {dir}/distributed-system && make".format(dir=(git_dir.format(username=username))),
+
+        # Start
+        "cd {dir}/distributed-system/bin && nohup ./slave &".format(dir=(git_dir.format(username=username)))
     ]
 
     for command in slave_setup:
         print("Executing `{}`".format(command))
 
-        stdin, stdout, stderr = client.exec_command(command)
+        stdin, stdout, stderr = ssh.exec_command(command)
 
         out = stdout.read().decode()
         err = stderr.read().decode()
@@ -82,7 +88,8 @@ for username, hostname in slaves:
         if len(err) > 0:
             print("Err:\n{}".format(err))
 
-    client.close()
+
+    ssh.close()
 
     print("-"*80)
 
@@ -93,7 +100,7 @@ for username, hostname in slaves:
 # Master Node
 username, hostname = servers.master_node
 print("MASTER: Connecting to {} as {}.".format(hostname, username))
-client.connect(hostname=hostname, username=username, pkey=pkey)
+ssh.connect(hostname=hostname, username=username, pkey=pkey)
 
 master_setup = [
     # Remove local copy if it exits.
@@ -105,17 +112,24 @@ master_setup = [
     # Run local setup script.
     "bash {dir}/scripts/setup.sh".format(dir=(git_dir.format(username=username))),
 
-    # Run local startup script.
-    "bash {dir}/scripts/startup.sh master".format(dir=(git_dir.format(username=username)))
+    # Ensure rpc is bound.
+    "sudo rpcbind",
+
+    # Build System
+    "cd {dir}/distributed-system && make".format(dir=(git_dir.format(username=username))),
+
+    # Start
+    "cd {dir}/distributed-system/bin && nohup ./dbms 0".format(dir=(git_dir.format(username=username)))
 ]
 
 for command in master_setup:
     print("Executing `{}`".format(command))
-    stdin, stdout, stderr = client.exec_command(command)
+    stdin, stdout, stderr = ssh.exec_command(command)
     out = stdout.read().decode()
     err = stderr.read().decode()
     if len(out) > 0:
         print("Out:\n{}".format(out))
     if len(err) > 0:
         print("Err:\n{}".format(err))
-client.close()
+
+ssh.close()

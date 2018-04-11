@@ -35,7 +35,7 @@ python module manager.
 
 From your computer, you will run the `dbe-setup-and-run.py` script which will
 call the other scripts as needed. `dbe-setup-and-run.py` will run `setup.sh` and
-`startup.sh` on each of the nodes. This will first ensure the nodes have all
+all the necessary startup on each of the nodes. This will first ensure the nodes have all
 necessary requirements and then build and run the system.
 
 A prototypical usage will be:
