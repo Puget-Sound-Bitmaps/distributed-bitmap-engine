@@ -8,8 +8,9 @@ fi
 
 echo "Configuring System for Distributed Bitmap Engine"
 
-UPDATEFILE="~/.dbe.checked-updates"
-DEPENDFILE="~/.dbe.checked-dependencies"
+HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../.. && pwd )"
+UPDATEFILE=$HOME/.dbe.checked-updates
+DEPENDFILE=$HOME/.dbe.checked-dependencies
 
 # Touch with `-a` ensures files exit without altering modification time.
 touch -a $UPDATEFILE

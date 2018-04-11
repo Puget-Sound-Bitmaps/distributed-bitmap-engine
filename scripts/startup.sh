@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Building and Starting Distributed Bitmap Engine"
-DIR="~/distributed-bitmap-engine"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
 # Rebuild and run necessary preparatory commands.
 sudo rpcbind
