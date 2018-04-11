@@ -11,13 +11,15 @@ cd $DIR/distributed-system
 # Fist argument is the type of node [master|slave]
 NODETYPE=$1
 
+make
+
 # Assign binary file depending on argument, quitting if invalid.
 if [[ $NODETYPE == "slave" ]]
 then
-    nohup make spawn_slave &
+    echo "Starting slave..."
 elif [[ $NODETYPE == "master" ]]
 then
-    nohup make basic_test &
+    echo "Starting master..."
 else
     echo "`$NODETYPE` is not a valid argument."
     echo "Usage: startup.sh [master|slave]"
