@@ -31,7 +31,7 @@ else
 fi
 
 # We only check dependencies if it has been at least one day since we last checked.
-if test true #`find $DEPENDFILE -mmin +1440`
+if test `find $DEPENDFILE -mmin +1440`
 then
     echo "Ensuring System Has Dependencies"
     sudo apt-get --yes install default-jdk  # Java

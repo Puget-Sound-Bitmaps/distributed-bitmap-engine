@@ -1,4 +1,4 @@
-import sys, os, string, threading, paramiko
+import sys, os, string, threading, paramiko, time
 
 #########
 # SETUP #
@@ -161,6 +161,8 @@ for username, hostname in slaves:
     t = threading.Thread(target=start, args=(hostname, username, "slave"))
     t.start()
     threads.append(t)
+
+time.sleep(10)
 
 for username, hostname in [servers.master_node]:
     t = threading.Thread(target=start, args=(hostname, username, "master"))
