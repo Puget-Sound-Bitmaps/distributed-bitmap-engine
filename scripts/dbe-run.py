@@ -36,6 +36,7 @@ for username, hostname in slaves:
     t.start()
     threads.append(t)
 
+"""
 time.sleep(10)
 
 for username, hostname in [servers.master_node]:
@@ -43,6 +44,7 @@ for username, hostname in [servers.master_node]:
     print("Firing master thread")
     t.start()
     threads.append(t)
+"""
 
 for t in threads:
     t.join()
