@@ -162,10 +162,10 @@ for username, hostname in slaves:
     t.start()
     threads.append(t)
 
-for username, hostname in [servers.master_node]:
-    t = threading.Thread(target=start, args=(hostname, username, "master"))
-    t.start()
-    threads.append(t)
+#for username, hostname in [servers.master_node]:
+#    t = threading.Thread(target=start, args=(hostname, username, "master"))
+#    t.start()
+#    threads.append(t)
 
 for t in threads:
     t.join()
