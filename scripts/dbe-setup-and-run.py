@@ -143,7 +143,7 @@ def start(hostname, username, kind):
     sshT.connect(hostname=hostname, username=username, pkey=pkey)
 
     if kind == "master":
-        kind = "dbms 0"
+        kind = "dbms 1"
 
     stdin, stdout, stderr = sshT.exec_command(start_cmd.format(dir=(git_dir.format(username=username)), type=kind))
 
@@ -161,8 +161,6 @@ for username, hostname in slaves:
     t = threading.Thread(target=start, args=(hostname, username, "slave"))
     t.start()
     threads.append(t)
-
-time.sleep(10)
 
 for username, hostname in [servers.master_node]:
     t = threading.Thread(target=start, args=(hostname, username, "master"))
