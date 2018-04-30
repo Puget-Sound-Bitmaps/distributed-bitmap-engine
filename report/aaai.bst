@@ -28,8 +28,8 @@
 % Standard disclaimers apply. Send comments etc., to si@cs.cmu.edu
 % This file can be used in other conferences as long as credit to the
 % authors and supporting agencies is retained, this notice is not changed,
-% and further modification or reuse is not restricted. 
-%  Name format in citations: 
+% and further modification or reuse is not restricted.
+%  Name format in citations:
 % single authorFirst
 % two authorsFirst and Second
 % three authorsFirst, Second, and Third
@@ -236,7 +236,7 @@ FUNCTION {format.publisher}
 { address empty$
 { publisher }
 { address ": " * publisher * }
-if$ 
+if$
 }
 if$
 }
@@ -246,7 +246,7 @@ FUNCTION {format.organization}
 { address empty$
 { organization }
 { address ": " * organization * }
-if$ 
+if$
 }
 if$
 }
@@ -926,8 +926,8 @@ numnames #1 =
 { numnames #2 =
 { s #1 "{vv }{ll} and " format.name$ s #2 "{vv }{ll}" format.name$ *
 }
-{ numnames #3 = 
-{ s #1 "{vv }{ll}, " format.name$ 
+{ numnames #3 =
+{ s #1 "{vv }{ll}, " format.name$
 s #2 "{vv }{ll}, and " format.name$ *
 s #3 "{vv }{ll}" format.name$ *
 }

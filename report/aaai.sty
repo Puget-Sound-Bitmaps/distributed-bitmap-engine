@@ -4,7 +4,7 @@
 %
 \typeout{Conference Style for AAAI for LaTeX 2e -- version of 1 January 2015}
 % WARNING: IF YOU ARE USING THIS STYLE SHEET FOR AN AAAI PUBLICATION, YOU
-% MAY NOT MODIFY IT FOR ANY REASON. MODIFICATIONS (IN YOUR SOURCE 
+% MAY NOT MODIFY IT FOR ANY REASON. MODIFICATIONS (IN YOUR SOURCE
 % OR IN THIS STYLE SHEET WILL RESULT IN REJECTION OF YOUR PAPER).
 
 % NOTICE: DO NOT MODIFY THIS FILE WITHOUT CHANGING ITS NAME. This style
@@ -15,20 +15,20 @@
 % file was originally prepared by Peter F. Patel-Schneider, liberally
 % using the ideas of other style hackers, including Barbara Beeton. It was
 % modified in April 1999 by J. Scott Penberthy and George Ferguson. It was
-% modified in 2007 by AAAI. It was modified in February 2009  
+% modified in 2007 by AAAI. It was modified in February 2009
 % and in November 2009 by Hans W. Guesgen and Giuseppe De Giacomo. It
 % was further modified in March 2010 by AAAI.
-% The original preparation of this file was supported by 
-% Schlumberger Palo Alto Research, AT\&T Bell Laboratories, AAAI, and 
+% The original preparation of this file was supported by
+% Schlumberger Palo Alto Research, AT\&T Bell Laboratories, AAAI, and
 % Morgan Kaufmann Publishers.
-% 
+%
 % WARNING: This style is NOT guaranteed to work. It is provided in the
 % hope that it might make the preparation of papers easier, but this style
 % file is provided "as is" without warranty of any kind, either express or
 % implied, including but not limited to the implied warranties of
 % merchantability, fitness for a particular purpose, or noninfringement.
 % You use this style file at your own risk. Standard disclaimers apply.
-% 
+%
 % Do not use this file unless you are an experienced LaTeX user. To
 % satisfy AAAI's requirements, you must change your paper's configuration
 % to use Times fonts. AAAI will not accept your paper if it is formatted
@@ -38,18 +38,18 @@
 % directory as the paper should also work.)
 %
 % You must also format your paper for US letter-sized paper.
-% 
+%
 % There are undoubtably bugs in this style. If you would like to submit
 % bug fixes, improvements, etc. please let us know. Please use the contact form
 % at www.aaai.org.
-% 
+%
 % USE OF PDFTeX IS NOW REQUIRED
 % \documentclass[letterpaper]{article}
 % \usepackage{aaai}
 % \usepackage{times}
 % \usepackage{helvet}
 % \usepackage{courier}
-% \setlength{\pdfpagewidth}{8.5in} 
+% \setlength{\pdfpagewidth}{8.5in}
 % \setlength{\pdfpageheight}{11in}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % IMPORTANT -- ADDITION OF A PDF MARK WITH YOUR PAPER TITLE
@@ -146,7 +146,7 @@ All rights reserved.}
 %%% END changed
 {\LARGE\bf \@title \par} \vskip 0.2in plus 1fil minus 0.1in
 {\def\and{\unskip\enspace{\rm and}\enspace}%
-\def\And{\end{tabular}\hss \egroup \hskip 1in plus 2fil 
+\def\And{\end{tabular}\hss \egroup \hskip 1in plus 2fil
  \hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\Large\bf}%
 \def\AND{\end{tabular}\hss\egroup \hfil\hfil\egroup
 \vskip 0.25in plus 1fil minus 0.125in
@@ -154,7 +154,7 @@ All rights reserved.}
  \hbox to \linewidth\bgroup\normalsize \hfil\hfil
 \hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\Large\bf}
 \hbox to \linewidth\bgroup\normalsize \hfil\hfil
-\hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\Large\bf\@author 
+\hbox to 0pt\bgroup\hss \begin{tabular}[t]{c}\Large\bf\@author
 \end{tabular}\hss\egroup
 \hfil\hfil\egroup}
 \vskip 0.3in plus 2fil minus 0.1in
@@ -205,7 +205,7 @@ Abstract}\vspace{0.5ex}\begin{quote}\small}{\par\end{quote}\vskip 1ex}
 \itemsep \parsep}
 \def\@listiii{\leftmargin\leftmarginiii
 \labelwidth\leftmarginiii\advance\labelwidth-\labelsep
-\topsep 1pt plus 0.5pt minus 0.5pt 
+\topsep 1pt plus 0.5pt minus 0.5pt
 \parsep \z@ \partopsep 0.5pt plus 0pt minus 0.5pt
 \itemsep \topsep}
 \def\@listiv{\leftmargin\leftmarginiv
@@ -216,7 +216,7 @@ Abstract}\vspace{0.5ex}\begin{quote}\small}{\par\end{quote}\vskip 1ex}
 \labelwidth\leftmarginvi\advance\labelwidth-\labelsep}
 \abovedisplayskip 7pt plus2pt minus5pt%
 \belowdisplayskip \abovedisplayskip
-\abovedisplayshortskip 0pt plus3pt% 
+\abovedisplayshortskip 0pt plus3pt%
 \belowdisplayshortskip 4pt plus3pt minus3pt%
 % Less leading in most fonts (due to the narrow columns)
 % The choices were between 1-pt and 1.5-pt leading
@@ -266,7 +266,7 @@ Abstract}\vspace{0.5ex}\begin{quote}\small}{\par\end{quote}\vskip 1ex}
 \def\@cite##1##2{{##1\if@tempswa , ##2\fi}}%
 \@ifnextchar [{\@tempswatrue\@citex}{\@tempswafalse\@citex[]}}
 % don't box citations, separate with ; and a space
-% also, make the penalty between citations a parameter, 
+% also, make the penalty between citations a parameter,
 % it may be a good place to break
 \def\@citex[#1]#2{%
 \def\@lastauthor{}\def\@citea{}%
@@ -277,7 +277,7 @@ Abstract}\vspace{0.5ex}\begin{quote}\small}{\par\end{quote}\vskip 1ex}
 {Citation `\@citeb' on page \thepage \space undefined}}%
 {\csname b@\@citeb\endcsname}\let\@lastauthor\@thisauthor}}{#1}}
 %Ignore the key when generating the Reference section.
-\def\@lbibitem[#1]#2{\item\if@filesw 
+\def\@lbibitem[#1]#2{\item\if@filesw
 { \def\protect##1{\string ##1\space}\immediate
 \write\@auxout{\string\bibcite{#2}{#1}}}\fi\ignorespaces}
 \def\thebibliography#1{\section*{References\@mkboth
