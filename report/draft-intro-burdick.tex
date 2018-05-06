@@ -1,14 +1,16 @@
 \section{Introduction}
-As datasets grow large (into the terabyte or petabyte size and beyond), performing efficient queries on them can become prohibitively time-consuming if done inefficiently.
-One method of improving query execution time is to use a bitmap index, which represents truth values about relational database tuples as binary strings.
-Performing queries on such indices is very efficient since they use machine-level bitwise operators to carry out common database queries such as select-from-where in SQL.
-In this paper we refer to each string as a bitmap vector.
-The purpose of our system is to expand upon Chiu et al.'s bitmap engine to work on a vector set partitioned among multiple machines.
-By exploiting processing power and networking capabilities of said machines, we aim to improve query performance against a single machine’s.
-Current distributed bitmap engines such as Pilosa do not use bitmap algorithms implemented in Chiu et al.’s engine, so we are adapting their work in our own distributed system.
+As datasets grow into the terabyte or petabyte size and beyond, performing efficient queries on them can become prohibitively time-consuming if done inefficiently.
+One method of improving query execution time is to use a \emph{bitmap index}, which is a collection of binary strings that represent truth values pertaining to a relational database. In this paper we refer to each string as a bitmap \emph{vector}.
+Queries on such a bitmap index can satisfy common database queries such as an SQL \emph{select-from-where} query and are very efficient since they consist primarily of machine-level bitwise operators.
+The lengths and quantities of vectors grow propotionally to the data set. \cite{}
+The purpose of our system is to expand upon the functionality Chiu et al.'s bitmap engine to distribute a vector set and the work of executing bitmap queries among multiple computers (``machines''). A system comprising multiple machines is known as a \emph{distributed system}.
 Our approach was to handle vector input and query requests from a database management system on one machine via a ``master'' process on the same machine.
 In doing so, the master sends replicas of the vector to 2 other distinct machines (``slaves'').
 It can also satisfy range queries by delegating the work to slaves that have the requisite vectors.
-In our implementation, we tested three different vector partitioning algorithms, and four different query planning algorithms.
+\\\indent
+The principal advantage of using a distributed system is that there is no single point of failure.
+Should an individual slave machine fail, since each vector is backed up on another machine, the data can be redistributed such that it is replicated twice on all machines within the system again. In a \emph{centralized system}, which contains only one machine and no backup, a disk failure would require one to regenerate the entire index. By comparision, a distributed system could return to service after minimal reorganization. Our system is also designed to be capable of recovering from single-slave failure at any point during execution.
+\\\indent
+\sout{In our implementation, we used , and four different query planning algorithms.
 Each algorithm was evaluated according to its ability to balance vector storage and query work among slaves as evenly as possible in order to fulfill complex queries efficiently.
-Our system is also designed to be capable of recovering from single-slave failure at any point during execution.
+Another distributed bitmap engine, Pilosa, does not use bitmap compression and querying algorithms implemented in Chiu et al.’s engine.}

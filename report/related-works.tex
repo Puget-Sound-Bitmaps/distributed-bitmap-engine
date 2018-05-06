@@ -2,4 +2,7 @@
 Pilosa \cite{pilosa2017} is a distributed bitmap engine built by the eponymous company in
 2017. It uses the Roaring Bitmaps compression algorithm, was written in the
 Go programming language, and runs each node in a cluster in lieu of using
-the master-slave model.
+the master-slave model. Pilosa also allows data replication on multiple machines.
+\\\indent DBIE also draws inspiration from Dynamo, Amazon's
+distributed key-value store, in the choice of hashing algorithm used
+to locate vectors.
