@@ -30,7 +30,7 @@ Distributed systems require additional methods of communication beyond those use
 Communication between nodes was accomplished using remote procedure calls (RPCs) via the Sun ONC+ library.
 RPCs are a method of simplifying communication between nodes by hiding the networking details and instead allowing developers to make function calls between nodes.
 This helps to make the source code more readable and avoid mistakes in manually opening network connections.
-In order to create our RPCs, we had to specify the types of RPCs being used in the ONC+ RPC language which is an extension of IBM's eXternal Data Representation (XDR) language.
+In order to create our RPCs, we had to specify the types of RPCs being used in the ONC+ RPC language which is an extension of the eXternal Data Representation (XDR) language developed in the mid 1980s by Sun Microsystems.
 %
 \subsection{Queries}
 In order to perform the necessary bitmap operations (\code{AND}s and \code{OR}s), we utilized a Bitmap Engine which had been developed by several students under the direction of Dr. David Chiu.
@@ -57,6 +57,12 @@ To do this, we implemented a system called Two-Phase Commit (TPC) which ensures 
 It does this by checking that both slaves are available: if so, the data is sent to both, if either is unavailable, the unavailable node is handled and the process is restarted.
 %
 \subsection{Query Planning}
+\begin{algorithm}
+    \begin{algorithmic}
+            \State{$a \gets b$} \Comment{Interesting!}
+    \end{algorithmic}
+    \caption{Query Planning}
+\end{algorithm}
 %
 \subsection{Fault Tolerance}
 %
