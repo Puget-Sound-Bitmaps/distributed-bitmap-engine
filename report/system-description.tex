@@ -42,7 +42,7 @@ Of the three, we chose to use WAH as it has been shown to be faster than BBC and
 We use an algorithm known as consistent hashing, introduced by Karger et al \cite{karger1997} to determine which two machines a given vector is located, or
 should be located if the identifier is new to the system.
 Conceptually, consistent hashing can be understood as follows. Each slave machine is assigned a point on a circle, where each point
-corresponds to a value between $0$ and $2^{64}-1.$ The point for a machine with identifier $i$ is calculated as $h(i):=\textsc{SHA1}(i)\bmod 2^{64}.$ To determine which machines (should) contain a given vector $k$, determine the point $h(k)$, and from that point walk clockwise until reaching a machine node. Keep walking until reaching the next node, and return that node and the previous node. The process is depicted in Figure 1.
+corresponds to a value between $0$ and $2^{64}-1.$ The point for a machine with identifier $i$ is calculated as $h(i):=\textsc{SHA1}(i)\bmod 2^{64}.$ To determine which machines (should) contain a given vector $k$, determine the point $h(k)$, and from that point walk clockwise until reaching a machine node. Keep walking until reaching the next node, and return that node (the \emph{backup} node) and the previous (\emph{primary}) node. The process is depicted in Figure 1.
 \begin{figure}
     \centering
     \input{./imgs/ring-hash.tikz}
@@ -50,16 +50,16 @@ corresponds to a value between $0$ and $2^{64}-1.$ The point for a machine with 
 \end{figure}
 In our system, the consistent hashing strucure is maintained as a red-black tree, and the process of determining the next node is given by the $\textsc{Tree-Successor}$ algorithm. When the system is initialized,
 each machine identifier (a nonnegative integer) is inserted into the tree. Each node is identified according to $h(i)$ as the field $hash$. Each node also has pointers to its left child, right child, and parent, $left, right$ and $p$ respectively.
-A tree also has a $nil$ node.
-
+A tree also has a ``null'' node, $tree.nil$, as a parent or child if it doesn't have one.
 \begin{algorithm}
   \Procedure{Tree-Successor}{$key,tree$}
     \begin{algorithmic}
       \State{$digest\gets h(key)$}
       \If{$digest\geq\textsc{Tree-Max}(tree).hash$}\\
-          \Return {$\textsc{Tree-Min}(tree)$}
+          \Return{$\textsc{Tree-Min}(tree)$}
+      \Else\\
+        \Return{$\textsc{Recur-Succ}(tree,tree.root,\\tree.root,key)$}
       \EndIf
-      \Return {$ \textsc{Recur-Succ}(tree,tree.root,\\tree.root,key)$}
     \end{algorithmic}
 \caption{Successor node}
 \end{algorithm}
@@ -99,39 +99,88 @@ The algorithm for consisent hashing is as follows.
   \Procedure{Consistent-Hash}{$key,tree$}
     \begin{algorithmic}
       \State{$digest \gets h(key)$}
-      \State{$m_0 \gets \textsc{Tree-Successor}(tree, digest).id$}
-      \State{$m_1 \gets \textsc{Tree-Successor}(tree, m_0).id$}\\
+      \State{$m_0 \gets \textsc{Tree-Successor}(tree, digest)$}
+      \State{$m_1 \gets \textsc{Tree-Successor}(tree, m_0)$}\\
       \Return{$\{m_0,m_1\}$}
     \end{algorithmic}
 \caption{Consistent Hashing}
 \end{algorithm}
 \subsection{Fault Tolerance}
 %
-The primary reason for using consistent hashing is for fault tolerance.
+The primary reason for using consistent hashing is for fault tolerance. To ensure
+that each slave node is still online, while waiting for messages from the DBMS
+the master pings each slave. If it doesn't hear back from a slave after one second,
+it assumes that slave is out of commission, and reallocates the vectors using
+$\textsc{Reallocate}$. To each node in the tree we store the set of vectors that
+map to this machine, specifically for this purpose.
+\begin{algorithm}
+  \Procedure{Reallocate}{$tree, slave$}
+    \begin{algorithmic}
+      \State{$pred\gets\textsc{Tree-Predecessor}(tree, slave)$}
+      \State{$succ\gets\textsc{Tree-Successor}(tree, slave)$}
+      \State{$second\_succ\gets\textsc{Tree-Successor}(tree, succ)$}
+      \ForAll{$v\in pred.vectors$}
+        \State{$\textsc{Send-Vector}(pred, v.id, succ)$}
+      \EndFor
+      \ForAll{$w\in slave.vectors$}
+        \State{$\textsc{Send-Vector}(succ, w.id, second\_succ)$}
+      \EndFor
+      \State{$succ.vectors\gets succ.vectors\cup slave.vectors$}
+      \State{$\textsc{RB-Delete}(tree,slave)$}
+    \end{algorithmic}
+    \caption{Reallocation}
+\end{algorithm}
+$\textsc{Tree-Predecessor},\textsc{Tree-Successor},$ and $\textsc{RB-Delete}$ are given
+in CLRS. $\textsc{Send-Vector}(s_1,k,s_2)$ is an RPC that orders slave $s_1$ to send
+$s_2$ vector $k$. Because we used consistent hashing, we know that the failed slave's
+backup vectors are the primary vectors of its predecessor. The successor must
+now maintain copies of the predecessor's vectors, so the master tells the predecessor to communicate
+its primary vectors to the successor.
+Likewise, since the successor node now holds the slave's primary vectors alongside
+its own, it must send the slave's primary vectors to its successor as a backup.
+Consistent hashing is preferable to using a hash-mod-n or round-robin technique
+because potentially every every single vector would have to be remapped,
+requiring significantly more messages and more nodes involved than the ones
+used in $\textsc{Reallocate}$ to reconfigure the system. This is because for
+hash-mod-n and round robin, algorithms whose hash function modulus is
+the number of machines, when a slave node is removed, the primary locations
+of potentially every vector changes, thus requiring us to remap every
+single vector \cite{kleppman2017}. While hash-mod-n requires $O(K)$ remappings,
+where $K$ is the number of keys, consistent hashing only requires $O(K/n)$,
+where $n$ is the number of slaves \cite{karger1997}.
 %
 \subsection{Consistency}
 After we have decided \emph{where} to store data, we needed a method of ensuring that the data actually arrived at each node it was suppose to.
 To do this, we implemented a system called Two-Phase Commit (TPC) which ensures data consistency.
 It does this by checking that both slaves are available: if so, the data is sent to both, if either is unavailable, the unavailable node is handled and the process is restarted.
 %
+\subsection{Queries}
+Our system is designed to handle range queries. An example range query is
+\texttt{R:[0,3]\&[5,7]}. Such a query might correspond to a range query in SQL.
+This query requires the following steps:
+$$
+v\gets v_0 \lor v_1 \lor v_2 \lor v_3 $$ $$
+w\gets v_5 \lor v_6 \lor v_7 $$ $$
+\texttt{return }  v \land w
+$$
+To carry out the query, we first create a plan that tells us which slave nodes
+to visit.
 \subsection{Query Planning}
 %\caption{Algorithm to plan query}\\
 The input value $Ranges$ is an ordered set of tuples $\{\{v_0,v_1\},\{v_1,v_2\},\ldots,\{v_n,v_m\}\}$ where $v_i\leq v_j$ and $0\leq i\leq j\leq n\leq m$, and each $v_i$ is a vector identifier, and $tree$ is the red-black tree used in
 consistent hashing to determine which two machines contain a given vector identifier.
 
-The algorithm for consistent hashing is as follows:
 \begin{algorithm}
   \Procedure{Range-Query-Plan}{$Ranges, tree$}
     \begin{algorithmic}
         \State{$swap \gets $  false}% \Comment{Used to choose the first or second result from CH.}
         \State{$paths \gets \emptyset$}
-            \ForAll{r \in $   \emph{Ranges}$}
-
+            \ForAll{$r \in\emph{Ranges}$}
                 \State{$subpaths \gets \emptyset$}
                 \For{$k \gets r_0,r_1$}
                   \State{$machines \gets \textsc{Consistent-Hash}(k,tree)$}%\Comment{A set containing the two machines this vector is on.}
                   \State{$tuple \gets \emptyset$}
-                  \If{swap}
+                  \If{$swap$}
                     \State{$tuple \gets tuple \cup \{machines_0\}$}
                   \Else
                     \State{$tuple \gets tuple \cup \{machines_1\}$}
@@ -139,7 +188,7 @@ The algorithm for consistent hashing is as follows:
                   \State{$tuple \gets tuple \cup \{k\}$}
                   \State{$subpaths \gets subpaths \cup tuple$}
                 \EndFor
-                \State{Sort $subpaths$ on machine identifier}
+                \State{Sort $subpaths$ on $machine.id$}
                 \State{$paths \gets paths \cup subpath$}
                 \State{$swap \gets \neg swap$}
           \EndFor
@@ -147,8 +196,43 @@ The algorithm for consistent hashing is as follows:
     \end{algorithmic}
     \caption{Query Planning}
 \end{algorithm}
+Sorting is performed so that in each portion of the query, we can visit each
+slave once.
 %
+\subsection{Query Execution}
+The master node plans out the query, and has the slaves execute it.
+\begin{algorithm}
+  \Procedure{Range-SubQuery}{$subquery$}
+    \begin{algorithmic}
+      \State{$res\gets \vec{0}$}
+      \ForAll{$tuple\in subquery$}
+        \If{$tuple_0=self$}
+          \State{$res\gets res\lor \textsc{Retrieve-Vector}(tuple_1)$}
+          \State{$subquery\gets subquery\setminus\{tuple\}$}
+        \Else
+          \State{$res\gets res\lor tuple_0.\textsc{Range-SubQuery}(tuple_1)$}
+          \State{\textbf{break}}
+         \EndIf
+      \Return{$res$}
+    \end{algorithmic}
+    \caption{Slave subquery}
+\end{algorithm}
 
+\begin{algorithm}
+  \Procedure{Master-Query-Root}{$query$}
+    \begin{algorithmic}
+      \State{$res\gets\emptyset$}
+      \ForAll{$subq\in query$}
+        \State{$res\gets res\cup {subq_0}_0.\textsc{Range-SubQuery}(subq)$}
+      \EndFor
+      \State{$v\gets res_0$}
+      \ForAll{$w\in res,w\neq v$}
+        \State{$v\gets v\land w$}
+      \EndFor
+      \Return $v$
+    \end{algorithmic}
+  \caption{Master Query Root}
+\end{algorithm}
 \subsection{Language}
 Due to its speed and established usage in systems like ours, we settled on writing our system primarily in C.
 In addition to C, Python 3 was used to script the production of testing data.
