@@ -1,10 +1,20 @@
 \section{System Description}
 The system described here is designed to run on Linux and its operability has been confirmed on Ubuntu.
+%
 \subsection{Basic Terminology}
-In case they are not familiar, we will begin by defining what we mean when we refer to \term{nodes}, \term{processes}, and \term{threads}.
-A \term{node}---as it relates to our system---corresponds to a single computer that can operate independently and each node will have some number of processes.
+A \term{node}---as it relates to our system---is a single computer that can operate independently.
 A \term{process} is an instance of a program that is being executed; each process contains the program code and the memory in use by the current execution.
-A \term{thread} is a sequence of instructions within a process that can be executed independently; a process may have one or more threads.
+%
+\subsection{Bitmaps}
+A bitmap index is an indexing method often compares
+%
+\subsection{Client}
+Our system's \term{client} is a database management system (DBMS).
+A DBMS interfaces with our system through two actions:
+\code{PUT} which adds data to the system (or updates existing data), and
+\code{QUERY} which requests the results of a given query on the index.
+In production, the DBMS could be a full-featured product like SQLite, but we created a faux DBMS that provided fine-grained control for our testing.
+%
 \subsection{System Structure}
 The two most established structures for a distributed system are the master-slave model and the peer-to-peer model; in both cases, let us assume we have \(N\) total nodes.
 In both models, a client (be it a person, another system, etc.) makes a request of the system and will expect some sort of response (a result, an acknowledgment, etc.).
@@ -12,24 +22,22 @@ In the peer-to-peer model each of the \(N\) peers can accept requests and then d
 Once the request has been satisfied, whichever peer has the final result will return the result to the client.
 In the master-slave model there exits a single ``master'' node and \(N - 1 = n\) ``slave'' nodes.
 The master node accepts requests and then delegates the work to the slaves which return results to the master which will in turn return the final result to the client.
-\par
 We chose to structure our system using the master-slave model instead of a peer-to-peer model because it is a very intuitive way of structuring the query problem.
 Further, when distributing data to the slaves we have chosen to use a replication factor of two---i.e., each piece of data is stored on two separate nodes.
-\subsection{Language}
-Due to its speed and established usage in systems like ours, we settled on writing our system primarily in C.
-In addition to C, Python 3 was used to script the production of testing data.
-Python 3 was also used in collaboration with bash to produce startup scripts that facilitated automatic testing of the system.
+%
 \subsection{Communication}
 Distributed systems require additional methods of communication beyond those used in single-process or even single-node systems.
 Communication between nodes was accomplished using remote procedure calls (RPCs) via the Sun ONC+ library.
 RPCs are a method of simplifying communication between nodes by hiding the networking details and instead allowing developers to make function calls between nodes.
 This helps to make the source code more readable and avoid mistakes in manually opening network connections.
 In order to create our RPCs, we had to specify the types of RPCs being used in the ONC+ RPC language which is an extension of IBM's eXternal Data Representation (XDR) language.
-\subsection{Bitmaps}
-In order to perform the necessary bitmap operations (ANDs and ORs), we utilized a Bitmap Engine which had been developed by several students under the direction of Dr. David Chiu.
+%
+\subsection{Queries}
+In order to perform the necessary bitmap operations (\code{AND}s and \code{OR}s), we utilized a Bitmap Engine which had been developed by several students under the direction of Dr. David Chiu.
 The Bitmap Engine has implemented three compression and query methods: Byte aligned Bitmap Code (BBC), Word aligned Hybrid Code (WAH), and Variable aligned Length Code (VAL).
 Each of these three compression and query methods provides substantial benefits over the use of uncompressed bitmap vectors.
 Of the three, we chose to use WAH as it has been shown to be faster than BBC and it has a simpler formatting than VAL.
+%
 \subsection{Hashing}
 As in most systems, hashing is used to determine where data should be stored and to provide fast lookup of data locations.
 We had several options when choosing which method to use to determine on which of the \(n\) slaves some given data should be stored.
@@ -37,7 +45,22 @@ First, we could have used a traditional hash-mod-\(n\) method where we hash our 
 This would have given us a primary node for the data.
 However, we chose to utilize a method called Consistent Hashing to determine were to store and from where to retrieve data.
 The primary algorithm we used is called Ring Consistent Hashing, however we also have provisions for using a second Consistent Hashing algorithm called Jump Consistent Hashing.
+\begin{figure}
+    \centering
+    \input{./imgs/ring-hash.tikz}
+    \caption{Visualization of Ring Consistent Hashing}
+\end{figure}
+%
 \subsection{Consistency}
 After decided \emph{where} to store data, we needed a method of ensuring that the data actually arrived at each node it was suppose to.
 To do this, we implemented a system called Two-Phase Commit (TPC) which ensures data consistency.
 It does this by checking that both slaves are available: if so, the data is sent to both, if either is unavailable, the unavailable node is handled and the process is restarted.
+%
+\subsection{Query Planning}
+%
+\subsection{Fault Tolerance}
+%
+\subsection{Language}
+Due to its speed and established usage in systems like ours, we settled on writing our system primarily in C.
+In addition to C, Python 3 was used to script the production of testing data.
+Python 3 was also used in collaboration with bash to produce startup scripts that facilitated automatic testing of the system.
