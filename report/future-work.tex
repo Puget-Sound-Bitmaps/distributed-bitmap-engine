@@ -1,1 +1,7 @@
 \section{Future Work}
+We would like to finish the work we have started by implementing more
+query plan algorithms and testing their efficiency. We also intend to test
+fault tolerance more rigorously through a series of experiments in which
+slave nodes fail at random times. Another optimization might be to short circuit
+a query that may OR more vectors, but has obtained a partial vector that
+is entirely $1$'s.
