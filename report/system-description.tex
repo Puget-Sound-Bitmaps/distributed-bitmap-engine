@@ -52,14 +52,37 @@ The primary algorithm we used is called Ring Consistent Hashing, however we also
 \end{figure}
 %
 \subsection{Consistency}
-After decided \emph{where} to store data, we needed a method of ensuring that the data actually arrived at each node it was suppose to.
+After we have decided \emph{where} to store data, we needed a method of ensuring that the data actually arrived at each node it was suppose to.
 To do this, we implemented a system called Two-Phase Commit (TPC) which ensures data consistency.
 It does this by checking that both slaves are available: if so, the data is sent to both, if either is unavailable, the unavailable node is handled and the process is restarted.
 %
 \subsection{Query Planning}
+%\caption{Algorithm to plan query}\\
+The input value $Ranges$ is an ordered set of tuples $\{\{v_0,v_1\},\{v_1,v_2\},\ldots,\{v_n,v_m\}\}$ where $v_i\leq v_j$ and $0\leq i\leq j\leq n\leq m$, and each $v_i$ is a vector identifier.
 \begin{algorithm}
+  \Procedure{Range-Query-Plan}{$Ranges$}
     \begin{algorithmic}
-            \State{$a \gets b$} \Comment{Interesting!}
+        \State{$swap \gets $  false}% \Comment{Used to choose the first or second result from CH.}
+        \State{$paths \gets \emptyset$}
+            \ForAll{r \in $   \emph{Ranges}$}
+
+                \State{$subpaths \gets \emptyset$}
+                \For{$i \gets r_0,r_1$}
+                  \State{$machines \gets ConsistentHash(i)$}%\Comment{A set containing the two machines this vector is on.}
+                  \State{$tuple \gets \emptyset$}
+                  \If{swap}
+                    \State{$tuple \gets tuple \cup \{machines_0\}$}
+                  \Else
+                    \State{$tuple \gets tuple \cup \{machines_1\}$}
+                  \EndIf
+                  \State{$tuple \gets tuple \cup \{i\}$}
+                  \State{$subpaths \gets subpaths \cup tuple$}
+                \EndFor
+                \State{Sort $subpaths$ on machine identifier}
+                \State{$paths \gets paths \cup subpath$}
+                \State{$swap \gets \neg swap$}
+          \EndFor
+          \Return $paths$
     \end{algorithmic}
     \caption{Query Planning}
 \end{algorithm}
