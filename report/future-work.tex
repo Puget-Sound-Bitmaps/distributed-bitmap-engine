@@ -6,4 +6,6 @@ query plan algorithms and testing their efficiency. We also intend to test
 fault tolerance more rigorously through a series of experiments in which
 slave nodes fail at random times. Another optimization might be to short circuit
 a query that may \code{OR} more vectors, but has obtained a partial vector that
-is entirely \code{1}s.
+is entirely \code{1}s. Furthermore, we can improve the $O(\log N)$ performance
+given by consistent hashing by using dynamic partitioning of the bitmap
+vectors, as described in \cite{kleppman2017}.

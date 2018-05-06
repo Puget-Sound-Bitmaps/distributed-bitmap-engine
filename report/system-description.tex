@@ -5,8 +5,8 @@ The system described here is designed to run on Linux and its operability has be
 A \term{node}---as it relates to our system---is a single computer that can operate independently.
 A \term{process} is an instance of a program that is being executed; each process contains the program code and the memory in use by the current execution.
 %
-\subsection{Bitmaps}
-A bitmap index is an indexing method often compares
+%\subsection{Bitmaps}
+%A bitmap index is an indexing method often compares
 %
 \subsection{Client}
 Our system's \term{client} is a database management system (DBMS).
@@ -27,16 +27,20 @@ Further, when distributing data to the slaves we have chosen to use a replicatio
 %
 \subsection{Communication}
 Distributed systems require additional methods of communication beyond those used in single-process or even single-node systems.
-Communication between nodes was accomplished using remote procedure calls (RPCs) via the Sun ONC+ library.
+Communication between nodes was accomplished using remote procedure calls (RPCs). An RPC is simply a function call
+from one process to another \cite{tanenbaum1994}.
 RPCs are a method of simplifying communication between nodes by hiding the networking details and instead allowing developers to make function calls between nodes.
-This helps to make the source code more readable and avoid mistakes in manually opening network connections.
-In order to create our RPCs, we had to specify the types of RPCs being used in the ONC+ RPC language which is an extension of the eXternal Data Representation (XDR) language developed in the mid 1980s by Sun Microsystems.
+This helps to make the source code more readable and avoid mistakes in manually opening and closing network connections.
+
 %
-\subsection{Queries}
-In order to perform the necessary bitmap operations (\code{AND}s and \code{OR}s), we utilized a Bitmap Engine which had been developed by several students under the direction of Dr. David Chiu.
+\subsection{Bitmap Compression}
+In order to perform the necessary bitmap operations (\code{AND}s and \code{OR}s), we utilized a Bitmap Engine which had been developed by several students under the direction of Professor David Chiu.
 The Bitmap Engine has implemented three compression and query methods: Byte aligned Bitmap Code (BBC), Word aligned Hybrid Code (WAH), and Variable aligned Length Code (VAL).
 Each of these three compression and query methods provides substantial benefits over the use of uncompressed bitmap vectors.
 Of the three, we chose to use WAH as it has been shown to be faster than BBC and it has a simpler formatting than VAL.
+WAH allows compression of vectors such that all information the vector gives
+is encoded, allows compressed vectors to be queried. A complete description of
+WAH is given by \cite{}.
 %
 \subsection{Consistent Hashing}
 We use an algorithm known as consistent hashing, introduced by Karger et al \cite{karger1997} to determine which two machines a given vector is located, or
@@ -52,7 +56,7 @@ In our system, the consistent hashing strucure is maintained as a red-black tree
 each machine identifier (a nonnegative integer) is inserted into the tree. Each node is identified according to $h(i)$ as the field $hash$. Each node also has pointers to its left child, right child, and parent, $left, right$ and $p$ respectively.
 A tree also has a ``null'' node, $tree.nil$, as a parent or child if it doesn't have one.
 \begin{algorithm}
-  \Procedure{Tree-Successor}{$key,tree$}
+  \Procedure{Tree-Successor}{$tree,key$}
     \begin{algorithmic}
       \State{$digest\gets h(key)$}
       \If{$digest\geq\textsc{Tree-Max}(tree).hash$}\\
@@ -98,9 +102,8 @@ The algorithm for consisent hashing is as follows.
 \begin{algorithm}
   \Procedure{Consistent-Hash}{$key,tree$}
     \begin{algorithmic}
-      \State{$digest \gets h(key)$}
-      \State{$m_0 \gets \textsc{Tree-Successor}(tree, digest)$}
-      \State{$m_1 \gets \textsc{Tree-Successor}(tree, m_0)$}\\
+      \State{$m_0 \gets \textsc{Tree-Successor}(tree, key)$}
+      \State{$m_1 \gets \textsc{Tree-Successor}(tree, m_0.id)$}\\
       \Return{$\{m_0,m_1\}$}
     \end{algorithmic}
 \caption{Consistent Hashing}
@@ -233,7 +236,9 @@ The master node plans out the query, and has the slaves execute it.
     \end{algorithmic}
   \caption{Master Query Root}
 \end{algorithm}
-\subsection{Language}
-Due to its speed and established usage in systems like ours, we settled on writing our system primarily in C.
-In addition to C, Python 3 was used to script the production of testing data.
+\subsection{Implementation and Testing Notes}
+Due to its speed and established usage in systems like ours such as Redis \cite{https://github.com/antirez/redis}, we settled on writing our system primarily in the C programming language.
+In addition to C, Python 3 was used to script the production of testing data,
+which we obtained from the TPC-C data repository..
 Python 3 was also used in collaboration with bash to produce startup scripts that facilitated automatic testing of the system.
+In order to create our RPCs, we had to specify the types of RPCs being used in the ONC+ RPC language which is an extension of the eXternal Data Representation (XDR) language developed in the mid 1980s by Sun Microsystems.
