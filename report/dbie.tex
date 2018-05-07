@@ -7,9 +7,8 @@
 \usepackage{helvet}
 \usepackage{courier}
 
+\usepackage[hyphens]{url}
 \usepackage{mathtools}
-
-\usepackage[normalem]{ulem}
 
 \usepackage{graphicx}
 \graphicspath{{./imgs/}}
@@ -48,5 +47,6 @@
 \input{future-work}
 \input{acknowledgements}
 \input{appendices}
-\input{references}
+\nocite{*} % Use references even if not cited, remove this before submission.
+\bibliography{dbie}
 \end{document}
