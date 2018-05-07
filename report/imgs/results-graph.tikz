@@ -1,0 +1,54 @@
+\begin{tikzpicture}
+    \begin{axis}[
+        xlabel ={Query Batch Size (\(q\))},
+        ylabel ={Query Batch Execution Time (s)},
+        legend style={font=\footnotesize},
+        legend pos=north west,
+    ]
+
+    % Read Data
+    \pgfplotstableread{imgs/results.csv}\results;
+
+    % DISTRIBUTED SCATTER PLOT
+    \addplot
+        [only marks, mark = *, mark options={scale=0.1}, forget plot]
+        table
+        [y = D]
+        from \results;
+
+    % % CENTRALIZED SCATTER PLOT
+    \addplot
+        [only marks, mark = *, mark options={scale=0.1}, forget plot]
+        table
+        [y = C]
+        from \results;
+
+    % DISTRIBUTED REGRESSION PLOT
+    \addplot
+        [thick, red]
+        table
+        [y={create col/linear regression={y=D}}]
+        from \results;
+
+    % SAVE SLOPE AND INTERCEPT
+    \xdef\slopeD{\pgfplotstableregressiona}
+    \xdef\interceptD{\pgfplotstableregressionb}
+
+    % CENTRALIZED REGRESSION PLOT
+    \addplot
+        [thick, blue]
+        table
+        [y={create col/linear regression={y=C}}]
+        from \results;
+
+    % SAVE SLOPE AND INTERCEPT
+    \xdef\slopeC{\pgfplotstableregressiona}
+    \xdef\interceptC{\pgfplotstableregressionb}
+
+    % DISTRIBUTED REGRESSION LABEL
+    \addlegendentry{\(\mathrm{t}_d(q) = \pgfmathprintnumber{\slopeD} \cdot q \pgfmathprintnumber[print sign]{\interceptD} \)}
+
+    % CENTRALIZED REGRESSION LABEL
+    \addlegendentry{\(\mathrm{t}_c(q) = \pgfmathprintnumber{\slopeC} \cdot q \pgfmathprintnumber[print sign]{\interceptC} \)}
+    \end{axis}
+\end{tikzpicture}
