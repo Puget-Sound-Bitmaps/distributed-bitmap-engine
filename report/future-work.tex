@@ -4,8 +4,8 @@ Continuing our development, we would like to allow the addition of new slaves
 We would like to finish the work we have started by implementing more
 query plan algorithms and testing their efficiency. We also intend to test
 fault tolerance more rigorously through a series of experiments in which
-slave nodes fail at random times. Another optimization might be to short circuit
-a query that may \code{OR} more vectors, but has obtained a partial vector that
-is entirely \code{1}s. Furthermore, we can improve the $O(\log N)$ performance
-given by consistent hashing by using dynamic partitioning of the bitmap
-vectors, as described in \cite{kleppman2017}.
+slave nodes fail at random times. Another optimization might be to short
+circuit a query that may \code{OR} more vectors, but has obtained a partial
+vector that is entirely ones. Furthermore, we can improve the
+\(\func{O}{\log{N}}\) performance given by consistent hashing by using dynamic
+partitioning of the bitmap vectors, as described in \cite{kleppman2017}.
