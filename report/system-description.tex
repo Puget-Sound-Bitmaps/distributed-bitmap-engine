@@ -303,7 +303,7 @@ Algorithm~\ref{alg:slave-subquery}.
                     \State $r \gets r \lor \Call{Retrieve-Vector}{tuple_1}$
                     \State $q \gets q \setminus \set{tuple}$
                 \Else
-                    \State $s \gets \Call{Range-SubQuery}{tuple_1}$
+                    \State $s \gets \Call{Range-SubQuery}{q}$
                     \State $r \gets r \lor tuple_0.s$
                     \State \Break
                 \EndIf
