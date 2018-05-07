@@ -87,14 +87,14 @@ has pointers to its left child, right child, and parent (accessible via the
 functions \procedure{Left}, \procedure{Right} and \procedure{Par},
 respectively). If a node does not have a parent or a child, that pointer will
 hold the value \(null\). The algorithms for \procedure{Tree-Min} and
-\procedure{Tree-Max} are given in CLRS. \cite{cormen2009}
+\procedure{Tree-Max} are given in \cite{cormen2009}
 %
 \begin{algorithm}
     \begin{algorithmic}
         \Procedure{Recur-Succ}{$tree, root, succ, key$}
             \If{$root = null$}
                 \State \Return $succ$
-            \ElsIf{$key = \func{h}{root}$}
+            \ElsIf{$key = \func{h}{root.id}$}
                 \State $succ \gets \Call{Right}{root}$
                 \If{$succ = null$}
                     \State $succ \gets root$
@@ -107,7 +107,7 @@ hold the value \(null\). The algorithms for \procedure{Tree-Min} and
                     \EndWhile
                 \EndIf
                 \Return {$succ$}
-            \ElsIf{$\func{h}{root} > key$}
+            \ElsIf{$\func{h}{root.id} > key$}
                 \State $left \gets \Call{Left}{root}$
                 \State \Return \Call{Recur-Succ}{$tree, left, root, key$}
             \Else
@@ -123,7 +123,7 @@ hold the value \(null\). The algorithms for \procedure{Tree-Min} and
 \begin{algorithm}
     \begin{algorithmic}
         \Procedure{Tree-Succ}{$tree, key$}
-            \If{$\Call{Hash}{key} \geq \func{h}{\Call{Tree-Max}{tree}}$}
+            \If{$\func{h}{key} \geq \func{h}{\Call{Tree-Max}{tree}.id}$}
                 \State \Return \Call{Tree-Min}{$tree$}
             \Else
                 \State $root \gets \Call{Root}{tree}$
@@ -191,7 +191,7 @@ vectors that map to this machine, specifically for this purpose.
 \end{algorithm}
 %
 \par
-In our implementation we utilized algorithms provided by CLRS \cite{cormen2009}
+In our implementation we utilized algorithms provided by \cite{cormen2009}
 to find the predecessor of a slave (\procedure{Tree-Pred}), to find the
 successor of a slave (\procedure{Tree-Succ}), and to delete a slave from the
 tree (\procedure{RB-Delete}). We also made use of an RPC,
