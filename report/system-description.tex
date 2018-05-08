@@ -4,44 +4,49 @@ Ubuntu. The following sections detail various design choices made during the
 implementation of DBIE.
 %
 \subsection{Basic Terminology}
-A \term{node}---as it relates to our system---is a single computer that can
-operate independently. A \term{process} is an instance of a program that is
+A \term{node}---as it relates to our system---is a single computer with a separate
+processor and disk from another node. A \term{process} is an instance of a program that is
 being executed; each process contains the program code and the memory in use by
 the current execution.
-\subsection{Client}
+
+\subsection{Client Interface}
 Our system's ``client'' is a database management system (DBMS). The DBMS
-interfaces with our system through two actions: \code{PUT} which adds data to
-the system (or updates existing data), and \code{QUERY} which requests the
-results of a given query on the index. In production, the DBMS could be a
+interfaces with our system through two functions: \code{PUT(k,v)} which adds a single
+vector numbered \code{k} with value \code{v} (or replaces the value of vector \code{k}
+with \code{v}), and \code{QUERY(q)} which returns the
+results of a given query \code{q} on the index. In production, the DBMS could be a
 full-featured product like SQLite, but we created a faux DBMS that provided
 fine-grained control for our testing.
 %
-\subsection{System Structure}
-The two most established structures for a distributed system are the
-master-slave model and the peer-to-peer model; in both cases, let us assume we
-have \(N\) total nodes. In both models, a client (be it a person, another
-system, etc.) makes a request of the system and will expect some sort of
-response (a result, an acknowledgment, etc.). In the peer-to-peer model each of
-the \(N\) peers can accept requests and then delegate work to their peers. Once
-the request has been satisfied, whichever peer has the final result will return
-the result to the client. In the master-slave model there exits a single
-``master'' node and \(N - 1 = n\) ``slave'' nodes. The master node accepts
-requests and then delegates the work to the slaves which return results to the
-master which will in turn return the final result to the client. We chose to
-structure our system using the master-slave model instead of the peer-to-peer
-model because it is a very intuitive way of structuring the query problem.
-Further, we chose to use a \term{replication factor} of two---i.e., each piece
-of data is stored on two separate nodes---when distributing data to the slaves.
+\subsection{System Architecture}
+
+Our system is built using the \term{master-slave model}. There is one
+master process to which the DBMS makes \code{PUT} and \code{GET} requests.
+Upon receiving a \code{PUT} request, the master sends the vector to
+two unique slave machines. The vector is saved on two machines so that if
+one machine became inoperative, it is not lost.
+\par
+To satisfy a given query, the master node constructs a \term{query plan},
+which specifies which slaves will help satisfy the query, and
+in what order. The slaves work together to satisfy queries using vectors they
+have, and return partial query results to the master. The master
+collates the results from each slave and returns it to the DBMS.
+The algorithms by which queries are satisfied are given in later sections.
+
 %
-\subsection{Communication}
+\subsection{Interprocess Communication}
 Distributed systems require additional methods of communication beyond those
-used in single-process or even single-node systems. Communication between nodes
+used in single-process or systems. Communication between nodes
 was accomplished using remote procedure calls (RPCs). An RPC is simply a
 function call from one process to another \cite{tanenbaum1994}. RPCs are a
 method of simplifying communication between nodes by hiding the networking
 details and instead allowing developers to make function calls between nodes.
 This helps to make the source code more readable and avoid mistakes in manually
-opening and closing network connections.
+opening and closing network connections. As they is currently implemented, the master node
+resides on the same machine as the DBMS. The master and DBMS processes
+communicate via Unix System V FIFO message queues. Requests are passed
+as messages, and the results could be fed into a different queue but are
+currently printed to standard out.
 %
 \subsection{Bitmap Compression}
 In order to perform the necessary bitmap operations (\code{AND}s and
@@ -55,6 +60,9 @@ we chose to use WAH as it has been shown to be faster than BBC and it has a
 simpler formatting than VAL. WAH allows compression of vectors such that all
 information the vector gives is encoded, allows compressed vectors to be
 queried. A complete description of WAH is given by \cite{wu2001}.
+\subsection{Bitmap Vectors}
+Slaves save vectors as files. The vector is broken up into 64-bit pieces, and
+each piece is saved sequentially into the file.
 %
 \subsection{Consistent Hashing}
 To determine on which two machines a given vector is located (or should be
@@ -72,16 +80,18 @@ To determine which machines (should) contain the vector \(k\), walk clockwise
 from the point \(\func{h}{k}\) until reaching a machine node (the
 \term{primary} node), and keep walking until reaching the next machine node
 (the \term{backup} node). Once the primary and backup nodes have been
-determined, return the set comprised of those two nodes. This process is
+determined, return the set comprised of those two nodes. This procedure is
 represented visually in Figure~\ref{fig:ring-hash-process} and formalized in
 Algorithm~\ref{alg:consistent-hashing}.
 %
 \par
 In our system, the consistent hashing structure is maintained as a red-black
-tree, and the process of determining the next node is given by the algorithms
+tree, and determining the next node is given by the algorithms
 \procedure{Tree-Succ} (Algorithm~\ref{alg:tree-succ}) and
-\procedure{Recur-Succ} (Algorithm~\ref{alg:recur-succ}). When the system is
+\procedure{Recur-Succ} (Algorithm~\ref{alg:recur-succ} {\cite{bstPredecessorSuccessor}}). When the system is
 initialized, each machine is assigned a nonnegative integer as an identifier.
+Each node of the tree is associated with a machine in the system, and is
+identified by the corresponding machine's id.
 After the identifiers are assigned, they are inserted into the tree. Each node
 has pointers to its left child, right child, and parent (accessible via the
 functions \procedure{Left}, \procedure{Right} and \procedure{Par},
@@ -131,7 +141,7 @@ hold the value \(null\). The algorithms for \procedure{Tree-Min} and
             \EndIf
         \EndProcedure
     \end{algorithmic}
-    \caption{Successor Node \cite{bstPredecessorSuccessor}}
+    \caption{Successor Node}
     \label{alg:tree-succ}
 \end{algorithm}
 %
@@ -168,8 +178,8 @@ waiting for messages from the DBMS, the master pings each slave to ensure that
 each slave node is still online. If it doesn't hear back from a slave after a
 reasonable length of time (one second in our system), it assumes that slave is
 out of commission, and reallocates the vectors using \procedure{Reallocate}
-(Algorithm~\ref{alg:reallocate}). To each node in the tree we store the set of
-vectors that map to this machine, specifically for this purpose.
+(Algorithm~\ref{alg:reallocate}). In each node in the tree we store the identifiers of
+the vectors on its associated machine, specifically for this purpose.
 %
 \begin{algorithm}
     \begin{algorithmic}
@@ -178,10 +188,10 @@ vectors that map to this machine, specifically for this purpose.
             \State{$succ\gets\procedure{Tree-Succ}(tree, slave)$}
             \State{$ssucc\gets\procedure{Tree-Succ}(tree, succ)$}
             \ForAll{$v\in (slave.vectors \cap succ.vectors)$}
-                \State{$\procedure{Send-Vector}(succ, v.id, ssucc)$}
+                \State{$\procedure{Send-Vector}(succ, v, ssucc)$}
             \EndFor
             \ForAll{$w\in (slave.vectors \cap pred.vectors)$}
-                \State{$\procedure{Send-Vector}(pred, w.id, succ)$}
+                \State{$\procedure{Send-Vector}(pred, w, succ)$}
             \EndFor
             \State{$\procedure{RB-Delete}(tree, slave)$}
         \EndProcedure
@@ -204,16 +214,17 @@ maintain copies of the predecessor's vectors, so the master tells the
 predecessor to communicate its primary vectors to the successor. Likewise,
 since the successor node now holds the slave's primary vectors alongside its
 own, it must send the slave's primary vectors to its successor as a backup.
-Consistent hashing is preferable to using a hash-mod-n or round-robin technique
-because potentially every every single vector would have to be remapped,
-requiring significantly more messages and more nodes involved than the ones
-used in \procedure{Reallocate} to reconfigure the system. This is because for
-hash-mod-n and round robin, algorithms whose hash function modulus is the
+Consistent hashing is preferable to using a hash-mod-n technique
+because potentially every every single vector would have to be remapped if
+the system changed,
+requiring significantly more message passing than the ones
+used in \procedure{Reallocate}. This is because for
+hash-mod-n an algorithms whose hash function modulus is the
 number of machines, when a slave node is removed, the primary locations of
 potentially every vector changes, thus requiring us to remap every single
-vector \cite{kleppman2017}. While hash-mod-n requires \(\func{O}{K}\)
+vector in the worst case \cite{kleppman2017}. While hash-mod-n requires \(\func{O}{K}\)
 remappings, where \(K\) is the number of keys, consistent hashing only requires
-\(\func{O}{K/n}\), where \(n\) is the number of slaves
+\(\func{O}{K/n}\) remappings.
 \cite{karger1997}.
 %
 \subsection{Queries}
@@ -236,7 +247,16 @@ second input,
 holds the ranges of the query as an ordered set of tuples where
 \(v_i \leq v_j\) and \(0 \leq i \leq j \leq n \leq m\), and each \(v_i\) is a
 vector identifier. Sorting is performed so that, in each portion of the query,
-slaves do not have to be visited more than once.
+slaves do not have to be visited more than once, making query processing
+a linear operation. Because \(\lor\) is communative, it does not matter which
+order the vectors are \code{OR}ed together within the subquery. The \(swap\) variable is used
+to introduce variance in what machines are visited to retrieve a given vector, so
+that replication of vectors can be used to balance the work of the query among
+primary and secondary machines.\par The return value is
+a set $Q$ of \term{subqueries}, where each subquery comprises one or more tuples
+of the form \(\tuple{machine\_id,vector\_id}\), which will be used in
+the query execution algorithms to determine which slaves to visit
+and which vectors to obtain.
 %
 \begin{algorithm}
     \begin{algorithmic}
@@ -270,8 +290,17 @@ slaves do not have to be visited more than once.
 \subsection{Query Execution}
 Execution of queries received by the master is handled using
 Algorithm~\ref{alg:master-query-root} which first plans out the query using
-Algorithm~\ref{alg:query-planning} and then delegating work to the slaves using
-Algorithm~\ref{alg:slave-subquery}.
+Algorithm~\ref{alg:query-planning} and then delegates each subquery to its slaves using
+Algorithm~\ref{alg:slave-subquery}.\par
+Algorithm~\ref{alg:slave-subquery} is an RPC takes a machine identifier, denoting
+the slave that the function is run on, and a set of tuples comprising a subquery.
+The slave iterates over the tuples referencing vectors it contains, and \code{OR}s
+them together using WAH, as denoted by \(\lor\). Once the slave has operated on all
+requested vectors it holds, it makes an RPC to the slave in the subsequent tuple,
+recursively satisfying the remainder of the subquery.\par
+Algorithm~\ref{alg:master-query-root} takes a complete query, dividing the work
+among the slaves, and \code{AND}ing the results of each subquery together,
+returning the result to the DBMS.
 %
 \begin{algorithm}
     \begin{algorithmic}
@@ -279,7 +308,8 @@ Algorithm~\ref{alg:slave-subquery}.
             \State $R \gets \emptyset$
             \ForAll{$q \in Q$}
                 \Comment{Delegate subqueries.}
-                \State $r \gets \Call{Range-SubQuery}{q}$
+                \State $slave\_id \gets {q_0}_0$
+                \State $r \gets \Call{Range-SubQuery}{slave\_id, q}$
                 \State $R \gets R \cup \set{r}$
             \EndFor
             \State $v \gets \vec{1}$
@@ -296,15 +326,15 @@ Algorithm~\ref{alg:slave-subquery}.
 %
 \begin{algorithm}
     \begin{algorithmic}
-        \Procedure{Range-SubQuery}{$q$}
+        \Procedure{Range-SubQuery}{$machine\_id,q$}
             \State $r \gets \vec{0}$
             \ForAll{$tuple \in q$}
                 \If{$tuple_0 = self$}
                     \State $r \gets r \lor \Call{Retrieve-Vector}{tuple_1}$
                     \State $q \gets q \setminus \set{tuple}$
                 \Else
-                    \State $s \gets \Call{Range-SubQuery}{q}$
-                    \State $r \gets r \lor tuple_0.s$
+                    \State $s \gets \Call{Range-SubQuery}{tuple_0, q}$
+                    \State $r \gets r \lor s$
                     \State \Break
                 \EndIf
             \EndFor

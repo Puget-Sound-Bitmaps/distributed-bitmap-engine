@@ -9,3 +9,5 @@ circuit a query that may \code{OR} more vectors, but has obtained a partial
 vector that is entirely ones. Furthermore, we can improve the
 \(\func{O}{\log{N}}\) performance given by consistent hashing by using dynamic
 partitioning of the bitmap vectors, as described in \cite{kleppman2017}.
+The system could also be modified to allow the DBMS and master to reside on separate machines, making
+\code{PUT} and \code{GET} RPCs.

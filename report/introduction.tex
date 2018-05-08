@@ -1,14 +1,14 @@
 \section{Introduction}
-As datasets grow to be terabytes, petabytes, and beyond, performing efficient
-queries on these datasets can become prohibitively time-consuming if done
+As a dataset grows into the terabyte- or even petabyte-size performing efficient
+queries on it can become prohibitively time-consuming if done
 inefficiently. One method of improving query execution time is to use a
 \term{bitmap index}, which is a collection of binary strings that represent
-truth values pertaining to a \term{relational database}. In this paper we refer
+truth values pertaining to a relational database. In this paper we refer
 to each string as a \term{bitmap vector}. Queries on such a bitmap index can
 satisfy common database queries---such as an SQL \term{select-from-where}
 queries---and are very efficient as they consist primarily of machine-level
 bitwise operators. The lengths and quantities of vectors grow proportionally to
-the size of the datasets. \cite{redis}
+the size of the datasets. \cite{}
 \par
 The purpose of our system (hereafter called DBIE) is to expand upon the
 functionality of Chiu et al.'s bitmap engine by distributing a set of bitmap
