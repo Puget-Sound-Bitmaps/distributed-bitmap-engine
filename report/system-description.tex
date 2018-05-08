@@ -190,6 +190,27 @@ vectors that map to this machine, specifically for this purpose.
     \label{alg:reallocate}
 \end{algorithm}
 %
+\begin{figure}
+    \centering
+    \input{./imgs/reallocate.tikz}
+    \caption[Visualization of Vector Reallocation]{%
+        Visualization of Vector Reallocation\par
+        In this example, node \(F\) has failed and the master had determined
+        that we must reallocate vectors. The vectors that must be reallocated
+        are those for which \(F\) was their primary location and those for
+        which \(F\) was their backup location.
+        First, vectors \(v_1\) and \(v_2\) had \(F\) as their primary location
+        and \(B\) as their backup location (which will now become their primary
+        location). Thus, \(B\) will send (in one message) copies of \(v_1\) and
+        \(v_2\) to node \(C\) which will serve as the new backup location.
+        Second, vectors \(v_4\) and \(v_5\) will be sent (in one message) from
+        \(A\) (their primary location) to \(B\) which will take over as backup
+        for \(F\).
+        After this, the system will once again have two copies of each vector.
+    }
+    \label{fig:vector-reallocation}
+\end{figure}
+%
 \par
 In our implementation we utilized algorithms provided by \cite{cormen2009}
 to find the predecessor of a slave (\procedure{Tree-Pred}), to find the

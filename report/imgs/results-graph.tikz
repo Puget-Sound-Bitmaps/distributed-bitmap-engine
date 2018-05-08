@@ -46,9 +46,11 @@
     \xdef\interceptC{\pgfplotstableregressionb}
 
     % DISTRIBUTED REGRESSION LABEL
-    \addlegendentry{\(\mathrm{t}_d(q) = \pgfmathprintnumber{\slopeD} \cdot q \pgfmathprintnumber[print sign]{\interceptD} \)}
+    \addlegendentry{\(\mathrm{t}_d(q) = \pgfmathprintnumber{\slopeD} \cdot q
+        \pgfmathprintnumber[print sign]{\interceptD} \)}
 
     % CENTRALIZED REGRESSION LABEL
-    \addlegendentry{\(\mathrm{t}_c(q) = \pgfmathprintnumber{\slopeC} \cdot q \pgfmathprintnumber[print sign]{\interceptC} \)}
+    \addlegendentry{\(\mathrm{t}_c(q) = \pgfmathprintnumber{\slopeC} \cdot q
+        \pgfmathprintnumber[print sign]{\interceptC} \)}
     \end{axis}
 \end{tikzpicture}
