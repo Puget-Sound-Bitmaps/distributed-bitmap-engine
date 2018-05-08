@@ -4,6 +4,7 @@
         ylabel ={Query Batch Execution Time (s)},
         legend style={font=\footnotesize},
         legend pos=north west,
+        legend cell align={left},
     ]
 
     % Read Data

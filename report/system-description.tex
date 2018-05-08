@@ -88,16 +88,16 @@ Algorithm~\ref{alg:consistent-hashing}.
 In our system, the consistent hashing structure is maintained as a red-black
 tree, and determining the next node is given by the algorithms
 \procedure{Tree-Succ} (Algorithm~\ref{alg:tree-succ}) and
-\procedure{Recur-Succ} (Algorithm~\ref{alg:recur-succ} {\cite{bstPredecessorSuccessor}}). When the system is
-initialized, each machine is assigned a nonnegative integer as an identifier.
-Each node of the tree is associated with a machine in the system, and is
-identified by the corresponding machine's id.
-After the identifiers are assigned, they are inserted into the tree. Each node
-has pointers to its left child, right child, and parent (accessible via the
-functions \procedure{Left}, \procedure{Right} and \procedure{Par},
-respectively). If a node does not have a parent or a child, that pointer will
-hold the value \(null\). The algorithms for \procedure{Tree-Min} and
-\procedure{Tree-Max} are given in \cite{cormen2009}
+\procedure{Recur-Succ} (Algorithm~\ref{alg:recur-succ}
+\cite{bstPredecessorSuccessor}). When the system is initialized, each machine
+is assigned a nonnegative integer as an identifier. Each node of the tree is
+associated with a machine in the system, and is identified by the corresponding
+machine's id. After the identifiers are assigned, they are inserted into the
+tree. Each node has pointers to its left child, right child, and parent
+(accessible via the functions \procedure{Left}, \procedure{Right} and
+\procedure{Par}, respectively). If a node does not have a parent or a child,
+that pointer will hold the value \(null\). The algorithms for
+\procedure{Tree-Min} and \procedure{Tree-Max} are given in \cite{cormen2009}.
 %
 \begin{algorithm}
     \begin{algorithmic}
@@ -109,11 +109,11 @@ hold the value \(null\). The algorithms for \procedure{Tree-Min} and
                 \If{$succ = null$}
                     \State $succ \gets root$
                     \While{$\Call{Par}{succ} \neq null \land \func{h}{succ} < key$}
-                        \State{$succ \gets \Call{Par}{succ}$}
+                        \State $succ \gets \Call{Par}{succ}$
                     \EndWhile
                 \Else
                     \While{$\Call{Left}{succ} \neq null$}
-                        \State{$succ \gets \Call{Left}{succ}$}
+                        \State $succ \gets \Call{Left}{succ}$
                     \EndWhile
                 \EndIf
                 \Return {$succ$}
@@ -184,16 +184,16 @@ the vectors on its associated machine, specifically for this purpose.
 \begin{algorithm}
     \begin{algorithmic}
         \Procedure{Reallocate}{$tree, slave$}
-            \State{$pred\gets\procedure{Tree-Pred}(tree, slave)$}
-            \State{$succ\gets\procedure{Tree-Succ}(tree, slave)$}
-            \State{$ssucc\gets\procedure{Tree-Succ}(tree, succ)$}
-            \ForAll{$v\in (slave.vectors \cap succ.vectors)$}
-                \State{$\procedure{Send-Vector}(succ, v, ssucc)$}
+            \State $pred \gets \Call{Tree-Pred}{tree, slave}$
+            \State $succ \gets \Call{Tree-Succ}{tree, slave}$
+            \State $ssucc \gets \Call{Tree-Succ}{tree, succ}$
+            \ForAll{$v \in (slave.vectors \cap succ.vectors)$}
+                \State \Call{Send-Vector}{$succ, v, ssucc$}
             \EndFor
-            \ForAll{$w\in (slave.vectors \cap pred.vectors)$}
-                \State{$\procedure{Send-Vector}(pred, w, succ)$}
+            \ForAll{$w \in (slave.vectors \cap pred.vectors)$}
+                \State \Call{Send-Vector}{$pred, w, succ$}
             \EndFor
-            \State{$\procedure{RB-Delete}(tree, slave)$}
+            \State \Call{RB-Delete}{$(tree, slave)$}
         \EndProcedure
     \end{algorithmic}
     \caption{Reallocation}
@@ -206,7 +206,7 @@ the vectors on its associated machine, specifically for this purpose.
     \caption[Visualization of Vector Reallocation]{%
         Visualization of Vector Reallocation\par
         In this example, node \(F\) has failed and the master had determined
-        that we must reallocate vectors. The vectors that must be reallocated
+        that vectors must be reallocated. The vectors that must be reallocated
         are those for which \(F\) was their primary location and those for
         which \(F\) was their backup location.
         First, vectors \(v_1\) and \(v_2\) had \(F\) as their primary location
@@ -243,10 +243,9 @@ used in \procedure{Reallocate}. This is because for
 hash-mod-n an algorithms whose hash function modulus is the
 number of machines, when a slave node is removed, the primary locations of
 potentially every vector changes, thus requiring us to remap every single
-vector in the worst case \cite{kleppman2017}. While hash-mod-n requires \(\func{O}{K}\)
-remappings, where \(K\) is the number of keys, consistent hashing only requires
-\(\func{O}{K/n}\) remappings.
-\cite{karger1997}.
+vector in the worst case \cite{kleppman2017}. While hash-mod-n requires
+\(\func{O}{K}\) remappings, where \(K\) is the number of keys, consistent
+hashing only requires \(\func{O}{K/n}\) remappings. \cite{karger1997}
 %
 \subsection{Queries}
 Our system is designed to handle range queries. An example range query is
@@ -270,36 +269,37 @@ holds the ranges of the query as an ordered set of tuples where
 vector identifier. Sorting is performed so that, in each portion of the query,
 slaves do not have to be visited more than once, making query processing
 a linear operation. Because \(\lor\) is communative, it does not matter which
-order the vectors are \code{OR}ed together within the subquery. The \(swap\) variable is used
-to introduce variance in what machines are visited to retrieve a given vector, so
-that replication of vectors can be used to balance the work of the query among
-primary and secondary machines.\par The return value is
-a set $Q$ of \term{subqueries}, where each subquery comprises one or more tuples
-of the form \(\tuple{machine\_id,vector\_id}\), which will be used in
-the query execution algorithms to determine which slaves to visit
-and which vectors to obtain.
+order the vectors are \code{OR}ed together within the subquery. The \(swap\)
+variable is used to introduce variance in what machines are visited to retrieve
+a given vector, so that replication of vectors can be used to balance the work
+of the query among primary and secondary machines.
+\par
+The return value is a set $Q$ of \term{subqueries}, where each subquery
+comprises one or more tuples of the form \(\tuple{machine\_id,vector\_id}\),
+which will be used in the query execution algorithms to determine which slaves
+to visit and which vectors to obtain.
 %
 \begin{algorithm}
     \begin{algorithmic}
         \Procedure{Range-Query-Plan}{$tree, R$}
-            \State{$swap \gets false$}
-            \State{$paths \gets \emptyset$}
+            \State $swap \gets false$
+            \State $paths \gets \emptyset$
             \ForAll{$r \in R$}
-                \State{$subpaths \gets \emptyset$}
+                \State $subpaths \gets \emptyset$
                 \For{$k \gets r_0, r_1$}
-                    \State{$machines \gets \Call{Consistent-Hash}{tree, k}$}
-                    \State{$tuple \gets \emptyset$}
+                    \State $machines \gets \Call{Consistent-Hash}{tree, k}$
+                    \State $tuple \gets \emptyset$
                     \If{$swap$}
-                        \State{$tuple \gets tuple \cup \set{machines_0}$}
+                        \State $tuple \gets tuple \cup \set{machines_0}$
                     \Else
-                        \State{$tuple \gets tuple \cup \set{machines_1}$}
+                        \State $tuple \gets tuple \cup \set{machines_1}$
                     \EndIf
-                    \State{$tuple \gets tuple \cup \set{k}$}
-                    \State{$subpaths \gets subpaths \cup tuple$}
+                    \State $tuple \gets tuple \cup \set{k}$
+                    \State $subpaths \gets subpaths \cup tuple$
                 \EndFor
-                \State{Sort $subpaths$ on $machine.id$}
-                \State{$paths \gets paths \cup subpath$}
-                \State{$swap \gets \neg swap$}
+                \State Sort $subpaths$ on $machine.id$
+                \State $paths \gets paths \cup subpath$
+                \State $swap \gets \neg swap$
             \EndFor
             \Return $paths$
         \EndProcedure
