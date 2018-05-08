@@ -316,7 +316,8 @@ Algorithm~\ref{alg:slave-subquery}.\par
 Algorithm~\ref{alg:slave-subquery} is an RPC takes a machine identifier, denoting
 the slave that the function is run on, and a set of tuples comprising a subquery.
 The slave iterates over the tuples referencing vectors it contains, and \code{OR}s
-them together using WAH, as denoted by \(\lor\). Once the slave has operated on all
+them together using WAH, as denoted by \(\lor\). \(\textsc{Retrieve-Vector}(k)\) returns
+the value of vector $k$. Once the slave has operated on all
 requested vectors it holds, it makes an RPC to the slave in the subsequent tuple,
 recursively satisfying the remainder of the subquery.\par
 Algorithm~\ref{alg:master-query-root} takes a complete query, dividing the work
@@ -356,7 +357,6 @@ returning the result to the DBMS.
                 \Else
                     \State $s \gets \Call{Range-SubQuery}{tuple_0, q}$
                     \State $r \gets r \lor s$
-                    \State \Break
                 \EndIf
             \EndFor
             \State \Return $r$
