@@ -1,10 +1,11 @@
 \begin{tikzpicture}
     \begin{axis}[
-        xlabel ={Query Batch Size (\(q\))},
-        ylabel ={Query Batch Execution Time (s)},
+        xlabel ={Number of Queries},
+        ylabel ={Execution Time (s)},
         legend style={font=\footnotesize},
         legend pos=north west,
         legend cell align={left},
+        tick pos=left,
     ]
 
     % Read Data
@@ -25,22 +26,14 @@
     %     from \results;
 
     % DISTRIBUTED REGRESSION PLOT
-    \addplot
-        [thick, red, dashed]
-        table
-        [y={create col/linear regression={y=D}}]
-        from \results;
+    \addplot [no markers, red] table [y={create col/linear regression={y=D}}] from \results;
 
     % SAVE SLOPE AND INTERCEPT
     \xdef\slopeD{\pgfplotstableregressiona}
     \xdef\interceptD{\pgfplotstableregressionb}
 
     % CENTRALIZED REGRESSION PLOT
-    \addplot
-        [thick, blue, dotted]
-        table
-        [y={create col/linear regression={y=C}}]
-        from \results;
+    \addplot [no markers, blue, ultra thick] table [y={create col/linear regression={y=C}}] from \results;
 
     % SAVE SLOPE AND INTERCEPT
     \xdef\slopeC{\pgfplotstableregressiona}

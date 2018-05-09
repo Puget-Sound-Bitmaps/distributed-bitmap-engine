@@ -105,14 +105,14 @@ that pointer will hold the value \(null\). The algorithms for
 %
 \begin{figure}
     \centering
-    \input{./imgs/ring-hash.tikz}
+    \includegraphics{ring-hash}
     \caption{Visualization of Ring Consistent Hashing}
     \label{fig:ring-hash-process}
 \end{figure}
 %
 \begin{figure}
     \centering
-    \input{./imgs/tree.tikz}
+    \includegraphics{tree}
     \caption{Red-Black Tree Traversal}
     \label{fig:tree-traversal}
 \end{figure}
@@ -227,14 +227,14 @@ would have to be remapped. This remapping requires significantly more message
 passing than are used in the \procedure{Reallocate} function. This is because,
 when a slave node is removed while using the hash-mod-n technique, the primary
 locations of potentially every vector changes, thus requiring us to remap every
-single vector in the worst case. \cite{kleppman2017} While hash-mod-n requires
+single vector in the worst case. \cite{kleppmann2017} While hash-mod-n requires
 \(\func{O}{K}\) remappings, where \(K\) is the number of keys, consistent
 hashing only requires \(\func{O}{K/n}\) remappings where \(n\) is the number of
 slaves. \cite{karger1997}
 %
 \begin{figure}
     \centering
-    \input{./imgs/reallocate.tikz}
+    \includegraphics{reallocate}
     \caption{Visualization of Vector Reallocation}
     \label{fig:vector-reallocation}
 \end{figure}
@@ -263,12 +263,14 @@ Our system is designed to handle \term{range queries}. In this context, a range
 query is a query written as a number of ranges which are \code{AND}ed together.
 Each range is given as a pair of vector identifiers specifying the first and
 last vector in a range. Within these ranges, the vectors are \code{OR}ed
-together. An example of a range query is \code{R:[0,3]\&[5,7]} which would,
-in the context of Tables~
+together. An example of a range query is \code{R:[2,3]\&[6,7]} which would,
+in the context of Tables~\ref{table:census-salary} and \ref{table:census-age},
 correspond to a SQL query of the form
-\code{SELECT * FROM . WHERE AGE~>~50 AND SALARY~>~\$100000}.
-To carry out the query, we first create a plan that tells us which slave nodes
-to visit.
+\code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~>~50}.
+Using the bitmap index, the query can be satisfied by evaluating the expression
+\((v_2, v_3) \land (v_6, v_7)\) where the \(v_i\)s are vector identifiers.
+To carry out a query, we first create a plan that tells us which slave nodes
+contain the requisite vectors, and then perform that query.
 %
 \subsection{Query Planning}
 Our query planning algorithm (Algorithm~\ref{alg:query-planning}) takes two

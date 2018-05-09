@@ -10,16 +10,62 @@ disk can take upwards of \SI{15}{\milli\second} and the US population is
 roughly \num{326000000}. As a result, this query could take
 \(\num{326 000 000} \times \SI{15}{\milli\second} = \SI{1400}{\hour}\)
 which is just under two months; obviously, such slow queries are unacceptable.
+\begin{table}[H]
+    \centering
+    \caption{Example of a Relational Database, \code{CENSUS}}
+    \label{table:census-relational}
+    \begin{tabular}{@{}r||rcll@{}}
+        \toprule
+        Tuple   & Salary (\$)  & Age & City    & Name  \\
+        \midrule
+        \(t_0\) & \num{65000}  & 20  & Tacoma  & Julia \\
+        \(t_1\) & \num{25000}  & 76  & Spokane & Tim   \\
+        \(t_2\) & \num{130000} & 42  & Seattle & Maria \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 \par
 One method of improving query execution time is to use a \term{bitmap index}. A
 bitmap index is a collection of binary strings that represent truth values
-pertaining to a relational database (see Table~\ref{table:census-bitmap} for a
-possible index of Table~\ref{table:census-relational}). In this paper we refer
-to each string as a \term{bitmap vector}. Queries on such a bitmap index can
-satisfy common database queries---such as SQL \term{select-from-where}
-queries---and are very efficient as they consist primarily of machine-level
-bitwise operators. The lengths and quantities of vectors grow proportionally to
-the size of the datasets.
+pertaining to a relational database (see Tables~\ref{table:census-salary} and
+\ref{table:census-age} for possible indexes of age and salary information in
+Table~\ref{table:census-relational}). In this paper we refer to each string as
+a \term{bitmap vector}. Queries on such a bitmap index can satisfy common
+database queries---such as SQL \term{select-from-where} queries---and are very
+efficient as they consist primarily of machine-level bitwise operators. The
+lengths and quantities of vectors grow proportionally to the size of the
+datasets.
+\begin{table}[H]
+    \centering
+    \caption{Bitmap Index for Salary (\(S\), in thousands of dollars) in Table~\ref{table:census-relational}}
+    \label{table:census-salary}
+    \begin{tabular}{@{}r||c|c|c|c@{}}
+        \toprule
+                & \(S \leq 60\) & \(60 < S 100\) & \(100 < S \leq 300\) & \(300 \leq S\) \\
+                & \(v_0\) & \(v_1\) & \(v_2\) & \(v_3\) \\
+        \midrule
+        \(t_0\) & 0          & 1             & 0          & 0             \\
+        \(t_1\) & 1          & 0             & 0          & 0             \\
+        \(t_2\) & 0          & 0             & 1          & 0             \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+%
+\begin{table}[H]
+    \centering
+    \caption{Bitmap Index for Age (\(A\)) in Table~\ref{table:census-relational}}
+    \label{table:census-age}
+    \begin{tabular}{@{}r||c|c|c|c@{}}
+        \toprule
+                & \(A < 18\) & \(18 \leq  A < 21\) & \(21 \leq A < 66\) & \(66 \leq A\) \\
+                & \(v_4\) & \(v_5\) & \(v_6\) & \(v_7\) \\
+        \midrule
+        \(t_0\) & 0          & 1             & 0          & 0             \\
+        \(t_1\) & 0          & 0             & 0          & 1             \\
+        \(t_2\) & 0          & 0             & 1          & 0             \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 \par
 A system comprising multiple computers (\term{nodes}) is known as a
 \term{distributed system}. In comparison, a system containing only one node is
@@ -45,35 +91,4 @@ queries, the master delegates work to the slaves that have the requisite
 vectors.
 \par
 %
-\begin{table}
-    \centering
-    \caption{Example of a Relational Database}
-    \label{table:census-relational}
-    \begin{tabular}{@{}r||rcll@{}}
-        \toprule
-        Tuple   & Salary (\$)  & Age & City    & Name  \\
-        \midrule
-        \(t_0\) & \num{65000}  & 20  & Tacoma  & Julia \\
-        \(t_1\) & \num{25000}  & 76  & Spokane & Tim   \\
-        \(t_2\) & \num{130000} & 42  & Seattle & Maria \\
-        \bottomrule
-    \end{tabular}
-\end{table}
 %
-\begin{table}
-    \centering
-    \caption{Bitmap Index for Data in Table~\ref{table:census-relational}}
-    \label{table:census-bitmap}
-    \begin{tabular}{@{}r||cc|cc@{}}
-        \toprule
-                & \(S < \SI{100}[\$]{\kilo\nothing}\)
-                & \(S \geq \SI{100}[\$]{\kilo\nothing}\)
-                & \(Y < 50\) & \(Y \geq 50\) \\
-        Tuple   & \(v_0\)    & \(v_1\)       & \(v_2\)    & \(v_3\)       \\
-        \midrule
-        \(t_0\) & 1          & 0             & 1          & 0             \\
-        \(t_1\) & 1          & 0             & 0          & 0             \\
-        \(t_2\) & 0          & 1             & 0          & 1             \\
-        \bottomrule
-    \end{tabular}
-\end{table}

@@ -1,9 +1,9 @@
 \section{Conclusion}
-There are no other known distributed bitmap index systems
-that use WAH bitmap compression. Our system could be easily extended to be
-compatible with more compression schemes (besides Roaring, implemented in
-Pilosa), as it is not designed with a specific
-compression algorithm in mind. Thus, it can serve as a framework for evaluating
-different bitmap compression schemes in the context of distributed systems.
-Since fault-tolerant distributed systems are challenging to program \cite{kleppmann} we hope that
-further work on our system will lead to new techniques in systems programming.
+There are no other known distributed bitmap index systems that use WAH bitmap
+compression. Our system could easily be extended to be compatible with more
+compression schemes (as opposed to Pilosa which currently only supports
+Roaring), as it is not designed with a specific compression algorithm in mind.
+Thus, it can serve as a framework for evaluating different bitmap compression
+schemes in the context of distributed systems. Since fault-tolerant distributed
+systems are challenging to program \cite{kleppmann2017} we hope that further
+work on our system will lead to new techniques in systems programming.

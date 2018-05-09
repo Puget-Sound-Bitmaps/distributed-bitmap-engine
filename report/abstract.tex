@@ -1,3 +1,11 @@
 \begin{abstract}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam leo libero, congue eget purus sed, aliquam tempus diam. Etiam bibendum enim ante, id feugiat nunc vestibulum sed. In blandit commodo rutrum. Vivamus et metus vitae purus aliquam sagittis. Mauris finibus tellus ac gravida tincidunt. Aliquam commodo nulla sollicitudin nunc auctor, vel suscipit urna facilisis. Fusce at tellus vitae justo scelerisque finibus. Donec eleifend, erat ut laoreet sodales, ante urna mattis neque, non iaculis purus risus id leo. Aenean sed lorem nulla. Fusce vulputate, sem vel semper condimentum, velit magna finibus risus, et interdum sapien elit vitae magna. Morbi vel mauris odio. Nam interdum est maximus dolor mollis iaculis. Donec fringilla magna facilisis lectus accumsan lobortis. Ut placerat at lacus nec placerat. Etiam in faucibus sem, sodales bibendum sapien. Pellentesque tincidunt dolor nulla, sed dictum turpis tempor non. Donec vel odio ac elit maximus euismod. In hac habitasse platea dictumst sed.
+We have implemented a distributed system that reliably stores a bitmap index
+and supports distributed queries on the index. The system uses WAH bitmap
+compression, 2PC for data consistency, and consistent hashing for determining
+the locations of bitmap vectors. The system also provides an easily extendable
+framework for further research on in interplay between distributed systems
+and bitmap indexes. Experimental results confirm that query execution time in
+the distributed system is slower than on a centralized system, however the
+benefits of fault tolerance and increased storage capacity in aggregate provide
+capabilities not available in a centralized system.
 \end{abstract}
