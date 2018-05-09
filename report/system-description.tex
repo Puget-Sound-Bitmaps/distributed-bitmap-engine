@@ -3,20 +3,15 @@ DBIE is designed to run on Linux and its operability has been confirmed on
 Ubuntu 16.04.4 LTS. The following sections detail various design choices made
 during the implementation of DBIE.
 %
-\subsection{Basic Terminology}
-A \term{node}---as it relates to our system---is a single computer with a
-separate processor and disk. A \term{process} is an instance of a program that
-is being executed; each process contains the program code and the memory in use
-by the current execution.
-%
 \subsection{Client Interface}
-Our system's ``client'' is a database management system (DBMS). The DBMS
-interfaces with our system through two functions: \code{PUT(k,v)} which adds a
-single vector numbered \code{k} with value \code{v} to the system (or replaces
-the value of vector \code{k} with \code{v}), and \code{QUERY(q)} which returns
-the results of a given query string \code{q} on the index. In production, the
-DBMS could be a full-featured product like SQLite, but we created a faux DBMS
-that provided fine-grained control for testing.
+Our system's ``client'' is a database management system (DBMS). The DBMS runs
+as a separate process from the distributed system and interfaces with our
+system through two functions: \code{PUT(k,v)} which adds a single vector
+numbered \code{k} with value \code{v} to the system (or replaces the value of
+vector \code{k} with \code{v}), and \code{QUERY(q)} which returns the results
+of a given query string \code{q} on the index. In production, the DBMS could be
+a full-featured product like SQLite, but we created a faux DBMS that provided
+fine-grained control for testing.
 %
 \subsection{System Architecture}
 Our system is built using the \term{master-slave model}. There is one
@@ -268,7 +263,8 @@ Our system is designed to handle \term{range queries}. In this context, a range
 query is a query written as a number of ranges which are \code{AND}ed together.
 Each range is given as a pair of vector identifiers specifying the first and
 last vector in a range. Within these ranges, the vectors are \code{OR}ed
-together. An example of a range query is \code{R:[0,3]\&[5,7]} which would
+together. An example of a range query is \code{R:[0,3]\&[5,7]} which would,
+in the context of Tables~
 correspond to a SQL query of the form
 \code{SELECT * FROM . WHERE AGE~>~50 AND SALARY~>~\$100000}.
 To carry out the query, we first create a plan that tells us which slave nodes
@@ -280,9 +276,9 @@ inputs. The first input, \(tree\), is the red-black tree used in consistent
 hashing to determine which two nodes contain a given vector identifier.
 The second input,
 \[R = [\tuple{v_0, v_1}, \tuple{v_1, v_2}, \ldots, \tuple{v_n, v_m}],\]
-is a list of tuples where each tuple denotes the first and last vectors of a
-range. Each \(v_k\) is a vector identifier where \(0 \leq k \leq m\). Given the
-tuple \(\tuple{v_i, v_j} \in R\), we require that
+is a list of tuples where each tuple is comprised of the first and last vectors
+in a range. Each \(v_k\) is a vector identifier where \(0 \leq k \leq m\).
+Given the tuple \(\tuple{v_i, v_j} \in R\), we require that
 \(0 \leq i \leq j \leq n \leq m\). Sorting is performed so that, in each
 portion of the query, slaves do not have to be visited more than once, making
 query processing linear with respect to the number of slave nodes. Because
@@ -290,34 +286,31 @@ query processing linear with respect to the number of slave nodes. Because
 together within the subquery does not matter. Each range of the query may be
 run concurrently. In an effort to distribute the work to all slaves as evenly
 as possible, we choose a random return value from \procedure{Consistent-Hash}
-as the slave to visit for each of the given vectors.
+as the slave to visit for each of the given vectors. This selection is
+determined using the \procedure{Random} function which takes two integers
+arguments, \(i\) and \(j\), and returns a random integer in the range
+\([i, j)\).
 \par
-The return value is a set \(Q\) of \term{subqueries}, where each subquery
-comprises one or more tuples of the form \(\tuple{node\_id,vector\_id}\),
-which will be used in the query execution algorithms to determine which slaves
-to visit and which vectors to obtain.
+The return value of \procedure{Range-Query-Plan} is a set of \term{subqueries},
+\(Q\), where each subquery comprises one or more tuples of the form
+\(\tuple{slave\_id,vector\_id}\). These tuples are used in the query execution
+algorithms to determine which slaves to visit and which vectors to obtain. For
+example, the tuple \(\tuple{3, 2}\) indicates that \(v_2\) should be retrieved
+from slave 3.
 %
 \begin{algorithm}
     \begin{algorithmic}
-        \Procedure{Range-Query-Plan}{$tree, R$}
-            \State $swap \gets false$
+        \Procedure{Range-Query-Plan}{$tree, R, r$}
             \State $paths \gets \emptyset$
-            \ForAll{$r \in R$}
+            \ForAll{$(first, last) \in R$}
                 \State $subpaths \gets \emptyset$
-                \For{$k \gets r_0, r_1$}
+                \For{$k \in [first, last]$}
                     \State $nodes \gets \Call{Consistent-Hash}{tree, k}$
-                    \State $tuple \gets \emptyset$
-                    \If{$swap$}
-                        \State $tuple \gets tuple \cup \set{nodes_0}$
-                    \Else
-                        \State $tuple \gets tuple \cup \set{nodes_1}$
-                    \EndIf
-                    \State $tuple \gets tuple \cup \set{k}$
-                    \State $subpaths \gets subpaths \cup tuple$
+                    \State $node \gets nodes[\Call{Random}{0, r}]$
+                    \State $subpaths \gets subpaths \cup \set{(node, k)}$
                 \EndFor
-                \State Sort $subpaths$ on $node.id$
-                \State $paths \gets paths \cup subpath$
-                \State $swap \gets \neg swap$
+                \State Sort $subpaths$ on $node$
+                \State $paths \gets paths \cup \set{subpaths}$
             \EndFor
             \Return $paths$
         \EndProcedure
@@ -369,14 +362,14 @@ among the slaves, \code{AND}s the results of the subqueries (denoted by
 %
 \begin{algorithm}
     \begin{algorithmic}
-        \Procedure{Range-SubQuery}{$node\_id,q$}
+        \Procedure{Range-SubQuery}{$node\_id, subquery$}
             \State $r \gets \vec{0}$
-            \ForAll{$tuple \in q$}
-                \If{$tuple_0 = node\_idd$}
-                    \State $r \gets r \lor \Call{Retrieve-Vector}{tuple_1}$
-                    \State $q \gets q \setminus \set{tuple}$
-                \Else
-                    \State $s \gets \Call{Range-SubQuery}{tuple_0, q}$
+            \ForAll{$(node, vec) \in subquery$}
+                \If{$node = node\_id$} \Comment{Vector on current node.}
+                    \State $r \gets r \lor \Call{Retrieve-Vector}{vec}$
+                    \State $subquery \gets subquery \setminus (node, vec)$
+                \Else \Comment{Make RPC to next node.}
+                    \State $s \gets \Call{Range-SubQuery}{node, subquery}$
                     \State $r \gets r \lor s$
                 \EndIf
             \EndFor
@@ -388,12 +381,11 @@ among the slaves, \code{AND}s the results of the subqueries (denoted by
 \end{algorithm}
 %
 \subsection{Implementation and Testing Notes}
-Due to its speed and established usage in systems like ours, such as Redis
-\cite{redis}, we settled on writing our system primarily in the C programming
-language. In addition to C, Python~3 was used to script the production of
-testing data, which we obtained from the TPC-C data repository. Python~3 was
-also used in collaboration with bash to produce startup scripts that
-facilitated automatic testing of the system. In order to create our RPCs, we
-had to specify the types of RPCs being used in the ONC+ RPC language which is
-an extension of the eXternal Data Representation (XDR) language developed in
-the mid 1980s by Sun Microsystems.
+DBIE was primarily written in the C programming language due to its speed and
+common usage in systems programming. Python~3 was used to script the production
+of testing data, which we obtained from the TPC-C data repository \cite{tpcc}.
+Python~3 was also used in collaboration with bash to produce startup scripts
+that facilitated automatic testing of the system. In order to create our RPCs,
+we had to specify the types of RPCs being used in the ONC+ RPC language
+\cite{stevens1999} which is an extension of the eXternal Data Representation
+(XDR) language developed in the mid 1980s by Sun Microsystems \cite{rpcgen}.
