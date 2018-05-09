@@ -34,17 +34,17 @@ and as a results, a failure would necessitate regenerating the entire index.
 \par
 The purpose of our system (hereafter called DBIE) is to expand upon the
 functionality of Chiu, et al.'s bitmap engine by distributing a set of bitmap
-vectors, and the work of executing bitmap queries, among multiple computers
-(\term{nodes}). Our system is designed to be capable of recovering from
-single-node failure at any point during execution. Our approach was to handle
-vector input and query requests from a database management system (DBMS) via a
-\term{master} process on the same node as the DBMS. In order to store vectors
-and satisfy queries, the master sends replicas of the vector to two distinct
-nodes (\term{slaves}), and to satisfy queries, the master delegates work to
-the slaves that have the requisite vectors.
+vectors, and the work of executing bitmap queries, among multiple nodes. Our
+system is designed to be capable of recovering from single-node failure at any
+point during execution. Our approach was to handle vector input and query
+requests from a database management system (DBMS) via a \term{master} process
+on the same node as the DBMS. In order to store vectors and satisfy queries,
+the master sends replicas of the vector to two distinct nodes (\term{slaves}),
+and to satisfy queries, the master delegates work to the slaves that have the
+requisite vectors.
 \par
 %
-\begin{table}[H]
+\begin{table}
     \centering
     \caption{Example of a Relational Database}
     \label{table:census-relational}
@@ -59,7 +59,7 @@ the slaves that have the requisite vectors.
     \end{tabular}
 \end{table}
 %
-\begin{table}[H]
+\begin{table}
     \centering
     \caption{Bitmap Index for Data in Table~\ref{table:census-relational}}
     \label{table:census-bitmap}
