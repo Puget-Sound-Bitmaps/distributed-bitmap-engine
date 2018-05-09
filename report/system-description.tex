@@ -19,7 +19,6 @@ full-featured product like SQLite, but we created a faux DBMS that provided
 fine-grained control for our testing.
 %
 \subsection{System Architecture}
-
 Our system is built using the \term{master-slave model}. There is one
 master process to which the DBMS makes \code{PUT} and \code{GET} requests.
 Upon receiving a \code{PUT} request, the master sends the vector to
@@ -32,7 +31,12 @@ in what order. The slaves work together to satisfy queries using vectors they
 have, and return partial query results to the master. The master
 collates the results from each slave and returns it to the DBMS.
 The algorithms by which queries are satisfied are given in later sections.
-
+%
+\begin{figure}[t]
+    \includegraphics[width=\columnwidth]{system-picture}
+    \caption{Visualization of the System Architecture}
+    \label{fig:system-visualization}
+\end{figure}
 %
 \subsection{Interprocess Communication}
 Distributed systems require additional methods of communication beyond those
@@ -99,6 +103,47 @@ tree. Each node has pointers to its left child, right child, and parent
 that pointer will hold the value \(null\). The algorithms for
 \procedure{Tree-Min} and \procedure{Tree-Max} are given in \cite{cormen2009}.
 %
+\begin{figure}
+    \centering
+    \input{./imgs/ring-hash.tikz}
+    \caption{Visualization of Ring Consistent Hashing}
+    \label{fig:ring-hash-process}
+\end{figure}
+%
+\begin{figure}
+    \centering
+    \input{./imgs/tree.tikz}
+    \caption{Red-Black Tree Traversal}
+    \label{fig:tree-traversal}
+\end{figure}
+%
+\begin{algorithm}
+    \begin{algorithmic}
+        \Procedure{Consistent-Hash}{$tree, key$}
+            \State $p \gets \Call{Tree-Succ}{tree, \func{h}{key}}$
+            \State $b \gets \Call{Tree-Succ}{tree, \func{h}{p.id}}$
+            \State \Return $(p, b)$
+        \EndProcedure
+    \end{algorithmic}
+    \caption{Consistent Hashing}
+    \label{alg:consistent-hashing}
+\end{algorithm}
+%
+\begin{algorithm}
+    \begin{algorithmic}
+        \Procedure{Tree-Succ}{$tree, key$}
+            \If{$\func{h}{key} \geq \func{h}{\Call{Tree-Max}{tree}.id}$}
+                \State \Return \Call{Tree-Min}{$tree$}
+            \Else
+                \State $root \gets \Call{Root}{tree}$
+                \State \Return \Call{Recur-Succ}{$tree, root, root, key$}
+            \EndIf
+        \EndProcedure
+    \end{algorithmic}
+    \caption{Successor Node}
+    \label{alg:tree-succ}
+\end{algorithm}
+%
 \begin{algorithm}
     \begin{algorithmic}
         \Procedure{Recur-Succ}{$tree, root, succ, key$}
@@ -130,40 +175,6 @@ that pointer will hold the value \(null\). The algorithms for
     \label{alg:recur-succ}
 \end{algorithm}
 %
-\begin{algorithm}
-    \begin{algorithmic}
-        \Procedure{Tree-Succ}{$tree, key$}
-            \If{$\func{h}{key} \geq \func{h}{\Call{Tree-Max}{tree}.id}$}
-                \State \Return \Call{Tree-Min}{$tree$}
-            \Else
-                \State $root \gets \Call{Root}{tree}$
-                \State \Return \Call{Recur-Succ}{$tree, root, root, key$}
-            \EndIf
-        \EndProcedure
-    \end{algorithmic}
-    \caption{Successor Node}
-    \label{alg:tree-succ}
-\end{algorithm}
-%
-\begin{algorithm}
-    \begin{algorithmic}
-        \Procedure{Consistent-Hash}{$tree, key$}
-            \State $m_0 \gets \Call{Tree-Succ}{tree, key}$
-            \State $m_1 \gets \Call{Tree-Succ}{tree, m_0.id}$
-            \State \Return $\set{m_0, m_1}$
-        \EndProcedure
-    \end{algorithmic}
-    \caption{Consistent Hashing}
-    \label{alg:consistent-hashing}
-\end{algorithm}
-%
-\begin{figure}
-    \centering
-    \input{./imgs/ring-hash.tikz}
-    \caption{Visualization of Ring Consistent Hashing}
-    \label{fig:ring-hash-process}
-\end{figure}
-%
 \subsection{Consistency}
 After we had decided on a method for determining \emph{where} to store data,
 we needed a method of ensuring that the data actually arrived at each node it
@@ -178,50 +189,23 @@ waiting for messages from the DBMS, the master pings each slave to ensure that
 each slave node is still online. If it doesn't hear back from a slave after a
 reasonable length of time (one second in our system), it assumes that slave is
 out of commission, and reallocates the vectors using \procedure{Reallocate}
-(Algorithm~\ref{alg:reallocate}). In each node in the tree we store the identifiers of
-the vectors on its associated machine, specifically for this purpose.
-%
-\begin{algorithm}
-    \begin{algorithmic}
-        \Procedure{Reallocate}{$tree, slave$}
-            \State $pred \gets \Call{Tree-Pred}{tree, slave}$
-            \State $succ \gets \Call{Tree-Succ}{tree, slave}$
-            \State $ssucc \gets \Call{Tree-Succ}{tree, succ}$
-            \ForAll{$v \in (slave.vectors \cap succ.vectors)$}
-                \State \Call{Send-Vector}{$succ, v, ssucc$}
-            \EndFor
-            \ForAll{$w \in (slave.vectors \cap pred.vectors)$}
-                \State \Call{Send-Vector}{$pred, w, succ$}
-            \EndFor
-            \State \Call{RB-Delete}{$(tree, slave)$}
-        \EndProcedure
-    \end{algorithmic}
-    \caption{Reallocation}
-    \label{alg:reallocate}
-\end{algorithm}
-%
-\begin{figure}
-    \centering
-    \input{./imgs/reallocate.tikz}
-    \caption[Visualization of Vector Reallocation]{%
-        Visualization of Vector Reallocation\par
-        In this example, node \(F\) has failed and the master had determined
-        that vectors must be reallocated. The vectors that must be reallocated
-        are those for which \(F\) was their primary location and those for
-        which \(F\) was their backup location.
-        First, vectors \(v_1\) and \(v_2\) had \(F\) as their primary location
-        and \(B\) as their backup location (which will now become their primary
-        location). Thus, \(B\) will send (in one message) copies of \(v_1\) and
-        \(v_2\) to node \(C\) which will serve as the new backup location.
-        Second, vectors \(v_4\) and \(v_5\) will be sent (in one message) from
-        \(A\) (their primary location) to \(B\) which will take over as backup
-        for \(F\).
-        After this, the system will once again have two copies of each vector.
-    }
-    \label{fig:vector-reallocation}
-\end{figure}
-%
+(Algorithm~\ref{alg:reallocate}). In each node in the tree we store the
+identifiers of the vectors on its associated machine, specifically for this
+purpose.
 \par
+An example of this procedure can be seen in Figure~\ref{alg:reallocate}. There,
+node \(F\) has failed and the master had determined that vectors must be
+reallocated. The vectors that must be reallocated are those for which \(F\) was
+the primary location and those for which \(F\) was the backup location. First,
+vectors \(v_1\) and \(v_2\) had \(F\) as their primary location and \(B\) as
+their backup location (which will now become their primary location). So, \(B\)
+will send (in one message) copies of \(v_1\) and \(v_2\) to node \(C\) which
+will serve as the new backup location. Second, vectors \(v_4\) and \(v_5\) will
+be sent (in one message) from \(A\) (their primary location) to \(B\) which
+will take over as backup for \(F\). After this, the system will once again have
+two copies of each vector.
+\par
+%
 In our implementation we utilized algorithms provided by \cite{cormen2009}
 to find the predecessor of a slave (\procedure{Tree-Pred}), to find the
 successor of a slave (\procedure{Tree-Succ}), and to delete a slave from the
@@ -235,17 +219,42 @@ maintain copies of the predecessor's vectors, so the master tells the
 predecessor to communicate its primary vectors to the successor. Likewise,
 since the successor node now holds the slave's primary vectors alongside its
 own, it must send the slave's primary vectors to its successor as a backup.
-Consistent hashing is preferable to using a hash-mod-n technique
-because potentially every every single vector would have to be remapped if
-the system changed,
-requiring significantly more message passing than the ones
-used in \procedure{Reallocate}. This is because for
-hash-mod-n an algorithms whose hash function modulus is the
-number of machines, when a slave node is removed, the primary locations of
-potentially every vector changes, thus requiring us to remap every single
-vector in the worst case \cite{kleppman2017}. While hash-mod-n requires
-\(\func{O}{K}\) remappings, where \(K\) is the number of keys, consistent
-hashing only requires \(\func{O}{K/n}\) remappings. \cite{karger1997}
+Consistent hashing is preferable to using a hash-mod-n technique because
+potentially every every single vector would have to be remapped if the system
+changed, requiring significantly more message passing than the ones used in
+\procedure{Reallocate}. This is because for hash-mod-n an algorithms whose hash
+function modulus is the number of machines, when a slave node is removed, the
+primary locations of potentially every vector changes, thus requiring us to
+remap every single vector in the worst case \cite{kleppman2017}. While
+hash-mod-n requires \(\func{O}{K}\) remappings, where \(K\) is the number of
+keys, consistent hashing only requires \(\func{O}{K/n}\) remappings.
+\cite{karger1997}
+%
+\begin{figure}
+    \centering
+    \input{./imgs/reallocate.tikz}
+    \caption{Visualization of Vector Reallocation}
+    \label{fig:vector-reallocation}
+\end{figure}
+%
+\begin{algorithm}
+    \begin{algorithmic}
+        \Procedure{Reallocate}{$tree, slave$}
+            \State $pred \gets \Call{Tree-Pred}{tree, slave}$
+            \State $succ \gets \Call{Tree-Succ}{tree, slave}$
+            \State $ssucc \gets \Call{Tree-Succ}{tree, succ}$
+            \ForAll{$v \in (slave.vectors \cap succ.vectors)$}
+                \State \Call{Send-Vector}{$succ, v, ssucc$}
+            \EndFor
+            \ForAll{$w \in (slave.vectors \cap pred.vectors)$}
+                \State \Call{Send-Vector}{$pred, w, succ$}
+            \EndFor
+            \State \Call{RB-Delete}{$tree, slave$}
+        \EndProcedure
+    \end{algorithmic}
+    \caption{Reallocation}
+    \label{alg:reallocate}
+\end{algorithm}
 %
 \subsection{Queries}
 Our system is designed to handle range queries. An example range query is
@@ -261,18 +270,19 @@ to visit.
 \subsection{Query Planning}
 Our query planning algorithm (Algorithm~\ref{alg:query-planning}) takes two
 inputs. The first input, \(tree\), is the red-black tree used in consistent
-hashing to determine which two machines contain a given vector identifier. The
-second input,
-\[R = \set{\tuple{v_0, v_1}, \tuple{v_1, v_2}, \ldots, \tuple{v_n, v_m}},\]
-holds the ranges of the query as an ordered set of tuples where
-\(v_i \leq v_j\) and \(0 \leq i \leq j \leq n \leq m\), and each \(v_i\) is a
-vector identifier. Sorting is performed so that, in each portion of the query,
-slaves do not have to be visited more than once, making query processing
-a linear operation. Because \(\lor\) is communative, it does not matter which
-order the vectors are \code{OR}ed together within the subquery. The \(swap\)
-variable is used to introduce variance in what machines are visited to retrieve
-a given vector, so that replication of vectors can be used to balance the work
-of the query among primary and secondary machines.
+hashing to determine which two machines contain a given vector identifier.
+The second input,
+\[R = [\tuple{v_0, v_1}, \tuple{v_1, v_2}, \ldots, \tuple{v_n, v_m}],\]
+is a list of tuples where each tuple denotes the first and last vectors of a
+range. Each \(v_k\) is a vector identifier where \(0 \leq k \leq m\). Given the
+tuple \(\tuple{v_i, v_j} \in R\), we require that
+\(0 \leq i \leq j \leq n \leq m\). Sorting is performed so that, in each
+portion of the query, slaves do not have to be visited more than once, making
+query processing a linear operation. Because \(\lor\) is communative, it does
+not matter which order the vectors are \code{OR}ed together within the
+subquery. The \(swap\) variable is used to introduce variance in what machines
+are visited to retrieve a given vector, so that replication of vectors can be
+used to balance the work of the query among primary and secondary machines.
 \par
 The return value is a set $Q$ of \term{subqueries}, where each subquery
 comprises one or more tuples of the form \(\tuple{machine\_id,vector\_id}\),

@@ -1,19 +1,54 @@
 \section{Introduction}
 As datasets grow to be terabytes---or even petabytes---in size, performing
 efficient queries on them can become prohibitively time-consuming if not done
-efficiently. One method of improving query execution time is to use a
-\term{bitmap index}, which is a collection of binary strings that represent
-truth values pertaining to a relational database. In this paper we refer
+efficiently. An example of such a situation could be performing a query on US
+census data (see Table~\ref{table:census-relational} for a small set of example
+data). If we were to search for all people making over \SI{150000}[\$]{} who
+are under the age of 60, we would have to parse each line (tuple) in the
+database sequentially. Even on fast computers a read from disk can take upwards
+of \SI{15}{\milli\second} and the US population is roughly \num{326000000}.
+As a result, this query could take
+\(\num{326 000 000} \times \SI{15}{\milli\second} = \SI{1400}{\hour}\)
+which is just under two months; obviously, such slow queries are unacceptable.
+\par
+One method of improving query execution time is to use a \term{bitmap index}. A
+bitmap index is a collection of binary strings that represent truth values
+pertaining to a relational database (see Table~\ref{table:census-bitmap} for a
+possible index of Table~\ref{table:census-relational}). In this paper we refer
 to each string as a \term{bitmap vector}. Queries on such a bitmap index can
-satisfy common database queries---such as an SQL \term{select-from-where}
+satisfy common database queries---such as SQL \term{select-from-where}
 queries---and are very efficient as they consist primarily of machine-level
 bitwise operators. The lengths and quantities of vectors grow proportionally to
 the size of the datasets.
 \par
+A system comprising multiple computers (\term{nodes}) is known as a
+\term{distributed system}. In comparison, a system containing only one node is
+called a \term{centralized system}. The principal advantages of using a
+distributed system over a centralized system are twofold: first, there is no
+single point of failure, and second, the storage capacity of the system in
+aggregate can reach sized infeasible for a centralized system. Should an
+individual node in a distributed system, the data can be redistributed such
+that there is again a backup of all data in the system. Such resilience to
+hardware (or software) failure cannot be be obtained in a centralized system,
+and as a results, a failure would necessitate regenerating the entire index.
+\par
+The purpose of our system (hereafter called DBIE) is to expand upon the
+functionality of Chiu, et al.'s bitmap engine by distributing a set of bitmap
+vectors, and the work of executing bitmap queries, among multiple computers
+(\term{nodes}). Our system is designed to be capable of recovering from
+single-node failure at any point during execution. Our approach was to handle
+vector input and query requests from a database management system (DBMS) via a
+\term{master} process on the same node as the DBMS. In order to store vectors
+and satisfy queries, the master sends replicas of the vector to two distinct
+nodes (\term{slaves}), and to satisfy queries, the master delegates work to
+the slaves that have the requisite vectors.
+\par
 %
-\begin{table}
+\begin{table}[H]
     \centering
-    \begin{tabular}{@{}r|rcll@{}}
+    \caption{Example of a Relational Database}
+    \label{table:census-relational}
+    \begin{tabular}{@{}r||rcll@{}}
         \toprule
         Tuple   & Salary (\$)  & Age & City    & Name  \\
         \midrule
@@ -22,15 +57,17 @@ the size of the datasets.
         \(t_2\) & \num{130000} & 42  & Seattle & Maria \\
         \bottomrule
     \end{tabular}
-    \caption{Example of a Relational Database}
-    \label{table:census-relational}
 \end{table}
 %
-\begin{table}
+\begin{table}[H]
     \centering
+    \caption{Bitmap Index for Data in Table~\ref{table:census-relational}}
+    \label{table:census-bitmap}
     \begin{tabular}{@{}r||cc|cc@{}}
         \toprule
-                & \(S < \SI{100}[\$]{\kilo\nothing}\) & \(S \geq \SI{100}[\$]{\kilo\nothing}\) & \(Y < 50\) & \(Y \geq 50\) \\
+                & \(S < \SI{100}[\$]{\kilo\nothing}\)
+                & \(S \geq \SI{100}[\$]{\kilo\nothing}\)
+                & \(Y < 50\) & \(Y \geq 50\) \\
         Tuple   & \(v_0\)    & \(v_1\)       & \(v_2\)    & \(v_3\)       \\
         \midrule
         \(t_0\) & 1          & 0             & 1          & 0             \\
@@ -38,28 +75,4 @@ the size of the datasets.
         \(t_2\) & 0          & 1             & 0          & 1             \\
         \bottomrule
     \end{tabular}
-    \caption{Bitmap Index Representation of Table~\ref{table:census-relational}}
-    \label{table:census-bitmap}
 \end{table}
-%
-The purpose of our system (hereafter called DBIE) is to expand upon the
-functionality of Chiu et al.'s bitmap engine by distributing a set of bitmap
-vectors, and the work of executing bitmap queries, among multiple computers
-(``machines''). A system comprising multiple machines is known as a
-\term{distributed system}. Our approach was to handle vector input and query
-requests from a database management system via a ``master'' process where both
-the database management system and the master process are on the same machine.
-In doing so, the master sends replicas of the vector(s) to two other distinct
-machines (``slaves''). When satisfying queries, the master delegates work to
-the slave(s) that have the requisite vector(s).
-\par
-The principal advantage of using a distributed system is that there is no
-single point of failure. Should an individual slave machine fail the data can
-be redistributed such that each vector is again replicated twice within the
-system since each vector is backed up on a second machine. In a
-\term{centralized system}, which contains only one machine and no backup, a
-disk failure would require one to regenerate the entire index. By comparison,
-a distributed system could return to service after minimal reorganization. Our
-system is designed to be capable of recovering from single-slave failure at any
-point during execution.
-%

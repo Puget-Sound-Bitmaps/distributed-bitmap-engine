@@ -10,23 +10,23 @@
     % Read Data
     \pgfplotstableread{imgs/results.csv}\results;
 
-    % DISTRIBUTED SCATTER PLOT
-    \addplot
-        [only marks, mark = *, mark options={scale=0.1}, forget plot]
-        table
-        [y = D]
-        from \results;
+    % % DISTRIBUTED SCATTER PLOT
+    % \addplot
+    %     [only marks, mark = *, mark options={scale=0.1}, forget plot]
+    %     table
+    %     [y = D]
+    %     from \results;
 
     % % CENTRALIZED SCATTER PLOT
-    \addplot
-        [only marks, mark = *, mark options={scale=0.1}, forget plot]
-        table
-        [y = C]
-        from \results;
+    % \addplot
+    %     [only marks, mark = *, mark options={scale=0.1}, forget plot]
+    %     table
+    %     [y = C]
+    %     from \results;
 
     % DISTRIBUTED REGRESSION PLOT
     \addplot
-        [thick, red]
+        [thick, red, dashed]
         table
         [y={create col/linear regression={y=D}}]
         from \results;
@@ -37,7 +37,7 @@
 
     % CENTRALIZED REGRESSION PLOT
     \addplot
-        [thick, blue]
+        [thick, blue, dotted]
         table
         [y={create col/linear regression={y=C}}]
         from \results;
