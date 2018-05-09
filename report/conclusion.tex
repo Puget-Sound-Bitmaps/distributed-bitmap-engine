@@ -1,2 +1,9 @@
 \section{Conclusion}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam leo libero, congue eget purus sed, aliquam tempus diam. Etiam bibendum enim ante, id feugiat nunc vestibulum sed. In blandit commodo rutrum. Vivamus et metus vitae purus aliquam sagittis. Mauris finibus tellus ac gravida tincidunt. Aliquam commodo nulla sollicitudin nunc auctor, vel suscipit urna facilisis. Fusce at tellus vitae justo scelerisque finibus. Donec eleifend, erat ut laoreet sodales, ante urna mattis neque, non iaculis purus risus id leo. Aenean sed lorem nulla. Fusce vulputate, sem vel semper condimentum, velit magna finibus risus, et interdum sapien elit vitae magna. Morbi vel mauris odio. Nam interdum est maximus dolor mollis iaculis. Donec fringilla magna facilisis lectus accumsan lobortis. Ut placerat at lacus nec placerat. Etiam in faucibus sem, sodales bibendum sapien. Pellentesque tincidunt dolor nulla, sed dictum turpis tempor non. Donec vel odio ac elit maximus euismod. In hac habitasse platea dictumst sed.
+There are no other known distributed bitmap index systems
+that use WAH bitmap compression. Our system could be easily extended to be
+compatible with more compression schemes (besides Roaring, implemented in
+Pilosa), as it is not designed with a specific
+compression algorithm in mind. Thus, it can serve as a framework for evaluating
+different bitmap compression schemes in the context of distributed systems.
+Since fault-tolerant distributed systems are challenging to program \cite{kleppmann} we hope that
+further work on our system will lead to new techniques in systems programming.
