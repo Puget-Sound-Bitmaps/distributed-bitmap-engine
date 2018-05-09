@@ -1,15 +1,16 @@
 \section{Introduction}
 As datasets grow to be terabytes---or even petabytes---in size, performing
-efficient queries on them can become prohibitively time-consuming if not done
+queries on them can become prohibitively time-consuming if not done
 efficiently. An example of such a situation could be performing a query on US
 census data (see Table~\ref{table:census-relational} for a small set of example
 data). If we were to search for all Americans with salaries of at least
-\SI{100000}[\$]{} who are also under the age of 50, we would have to parse each
+\SI{100000}[\$]{} who are also under the age of 50 (equivalent to the SQL query
+\code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~<~50}), we would have to scan each
 line (tuple) in the database sequentially. Even on fast computers a read from
 disk can take upwards of \SI{15}{\milli\second} and the US population is
-roughly \num{326000000}. As a result, this query could take
+roughly \num{326000000} necessitating a \SI{15}{\milli\second} read for each tuple. As a result, this query could take
 \(\num{326 000 000} \times \SI{15}{\milli\second} = \SI{1400}{\hour}\)
-which is just under two months; obviously, such slow queries are unacceptable.
+which is just under two months; obviously queries cannot take this long.
 \begin{table}[H]
     \centering
     \caption{Example of a Relational Database, \code{CENSUS}}
@@ -29,12 +30,20 @@ One method of improving query execution time is to use a \term{bitmap index}. A
 bitmap index is a collection of binary strings that represent truth values
 pertaining to a relational database (see Tables~\ref{table:census-salary} and
 \ref{table:census-age} for possible indexes of age and salary information in
-Table~\ref{table:census-relational}). In this paper we refer to each string as
+Table~\ref{table:census-relational}).  In this paper we refer to each string as
 a \term{bitmap vector}. Queries on such a bitmap index can satisfy common
-database queries---such as SQL \term{select-from-where} queries---and are very
-efficient as they consist primarily of machine-level bitwise operators. The
-lengths and quantities of vectors grow proportionally to the size of the
-datasets.
+database queries---such as the SQL query given above---and are very efficient
+as they consist primarily of machine-level bitwise operators. To satisfy the query,
+we first find all Americans who make over \SI{100000}[\$]{} by \code{OR}ing
+vectors \(v_3\) (Americans with salaries between \SI{100000}[\$]{} and
+\SI{300000}[\$]{}) and \(v_4\) (Americans with salaries over \SI{300000}[\$]{}).
+Second, we find all Americans under the age of 50 by \code{OR}ing bitmap vectors
+\(v_4\), \(v_5\), and \(v_6\) which will include all Americans under the age of 66 (which is a superset of the tuples relevant to the query). After \code{AND}ing together the two ranges, we
+will be left with a bitmap vector where the rows with a value of \code{1} correspond
+to Americans who \emph{may} satisfy our original query. To find the exact query return value,
+the original tuples corresponding to the rows with \code{1}s must be scanned.
+While this may result in some tuples being scanned that do not satisfy the query,
+the number of tuples scanned is \emph{significantly} fewer than in a naive sequential scan.
 \begin{table}[H]
     \centering
     \caption{Bitmap Index for Salary (\(S\), in thousands of dollars) in Table~\ref{table:census-relational}}

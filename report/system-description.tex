@@ -44,7 +44,7 @@ call from one process to another \cite{tanenbaum1994}. RPCs are a method of
 simplifying communication between nodes by hiding the networking details and
 instead allowing developers to make function calls between nodes. This helps to
 make the source code more readable and avoid mistakes in manually opening and
-closing network connections. As they is currently implemented, the master node
+closing network connections. In the current implementation, the master node
 resides on the same node as the DBMS. The master and DBMS processes
 communicate via message queues. \cite{unixSystemV} Requests are passed as
 messages, and the results could be fed into a different queue but are currently
@@ -65,8 +65,9 @@ encoded, allows compressed vectors to be queried. A complete description of WAH
 is given by \cite{wu2001}.
 %
 \subsection{Bitmap Vectors}
-Slaves save each vector as a file. The vector is broken up into 64-bit pieces, and
-each piece is saved sequentially into the file.
+The lengths and quantities of bitmap vectors grow proportionally to the size of
+the data they index. Slaves save each vector as a file. The vector is broken up
+into 64-bit pieces, and each piece is saved sequentially into the file.
 %
 \subsection{Consistent Hashing}
 To determine on which two nodes a given vector is located (or should be
@@ -175,13 +176,14 @@ that pointer will hold the value \(null\). The algorithms for
     \label{alg:recur-succ}
 \end{algorithm}
 %
-\subsection{Consistency}
+\subsection{Two-Phase Commit}
 After we had decided on a method for determining \emph{where} to store data,
 we needed a method of ensuring that the data actually arrived at the
-appropriate node. To do this, we used the Two-Phase Commit protocol (2PC) which
-ensures data consistency. It does this by checking that both slaves are
-available: if so, the data is sent to both, if either is unavailable, the
-unavailable node is handled and the process is restarted. \cite{tanenbaum2017}
+appropriate node. To do this, we used the Two-Phase Commit protocol (2PC).
+Before committing a vector to a slave, the master checks that both slaves are
+available: if so, the vector is sent to both, if either is unavailable, the
+inaccessible node is removed from the system and the commit of the vector is
+restarted. \cite{tanenbaum2017}
 %
 \subsection{Fault Tolerance}
 The primary reason for using consistent hashing is for fault tolerance. While
@@ -266,17 +268,18 @@ last vector in a range. Within these ranges, the vectors are \code{OR}ed
 together. An example of a range query is \code{R:[2,3]\&[6,7]} which would,
 in the context of Tables~\ref{table:census-salary} and \ref{table:census-age},
 correspond to a SQL query of the form
-\code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~>~50}.
+\code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~<~50}.
 Using the bitmap index, the query can be satisfied by evaluating the expression
-\((v_2, v_3) \land (v_6, v_7)\) where the \(v_i\)s are vector identifiers.
+\((v_2 \lor v_3) \land (v_4 \lor v_5 \lor v_6)\) where the \(v_i\)s are vector identifiers.
 To carry out a query, we first create a plan that tells us which slave nodes
 contain the requisite vectors, and then perform that query.
 %
 \subsection{Query Planning}
-Our query planning algorithm (Algorithm~\ref{alg:query-planning}) takes two
+Our query planning algorithm (Algorithm~\ref{alg:query-planning}) takes three
 inputs. The first input, \(tree\), is the red-black tree used in consistent
-hashing to determine which two nodes contain a given vector identifier.
-The second input,
+hashing to determine which two nodes contain a given vector identifier, and the
+second input, \(r\), is the replication factor of the system.
+The third input,
 \[R = [\tuple{v_0, v_1}, \tuple{v_1, v_2}, \ldots, \tuple{v_n, v_m}],\]
 is a list of tuples where each tuple is comprised of the first and last vectors
 in a range. Each \(v_k\) is a vector identifier where \(0 \leq k \leq m\).
@@ -302,7 +305,7 @@ from slave 3.
 %
 \begin{algorithm}
     \begin{algorithmic}
-        \Procedure{Range-Query-Plan}{$tree, R, r$}
+        \Procedure{Range-Query-Plan}{$tree, r, R$}
             \State $paths \gets \emptyset$
             \ForAll{$(first, last) \in R$}
                 \State $subpaths \gets \emptyset$
