@@ -1,5 +1,5 @@
 \section{Results}
-We have tested our implementation on a system comprising six slave nodes
+We have tested our implementation on a system comprising six slave nodes and one master
 against a centralized system that made no RPCs. All nodes used for testing were
 running Ubuntu 16.04.4 LTS on single-core \SI{2.6}{\giga\hertz} processors. In
 addition, the nodes each had \SI{2}{\gibi\byte} of RAM and \SI{20}{\gibi\byte}
@@ -16,7 +16,7 @@ with \(R^2 = 0.9818\). Since the slope of \(\mathrm{t}_d(q)\) surpasses the
 slope of \(\mathrm{t}_c(q)\), we expect the distributed system to perform more
 slowly. This is an expected result due to the time required to perform RPCs and
 execute the query planner. Despite the slower measured performance, using a
-distributed system provides the benefits fault tolerance and higher storage
+distributed system provides the benefits of fault tolerance and higher storage
 capacity (in aggregate) as discussed in the Introduction. Further, while a
 centralized system cannot be altered to provide fault tolerance, the execution
 time of the distributed system could be improved through further optimization.

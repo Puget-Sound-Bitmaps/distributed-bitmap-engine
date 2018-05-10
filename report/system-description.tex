@@ -38,9 +38,9 @@ The algorithms by which queries are satisfied are given in later sections.
 %
 \subsection{Interprocess Communication}
 Distributed systems require additional methods of communication beyond those
-used in single-process or systems. Communication between nodes was accomplished
-using remote procedure calls (RPCs) \cite{rpcgen}. An RPC is simply a function
-call from one process to another \cite{tanenbaum1994}. RPCs are a method of
+used in single-process systems. Communication between nodes was accomplished
+using remote procedure calls (RPCs). \cite{rpcgen} An RPC is simply a function
+call from one process to another. \cite{tanenbaum1994} RPCs are a method of
 simplifying communication between nodes by hiding the networking details and
 instead allowing developers to make function calls between nodes. This helps to
 make the source code more readable and avoid mistakes in manually opening and
@@ -52,16 +52,16 @@ printed to the standard out device.
 %
 \subsection{Bitmap Compression}
 In order to perform the necessary bitmap operations (\code{AND}s and
-\code{OR}s), we utilized Professor Chiu et al.'s bitmap engine which was
-developed by several students under the direction of David Chiu. Chiu et al.'s
-bitmap engine has implemented three compression and query methods: Byte aligned
-Bitmap Code (BBC) \cite{wu2001}, Word aligned Hybrid Code (WAH) \cite{wu2001},
-and Variable Aligned Length Code (VAL) \cite{guzun2014}. Each of these three
+\code{OR}s), we utilized Chiu et al.'s bitmap engine which was
+developed by several students under the direction of David Chiu. The
+bitmap engine has three compression and query methods implemented: Byte aligned
+Bitmap Code (BBC), Word aligned Hybrid Code (WAH),
+and Variable Aligned Length Code (VAL). \cite{guzun2014,wu2001} Each of these
 compression and query methods provides substantial benefits over the use of
 uncompressed bitmap vectors. Of the three, we chose to use WAH as it has been
 shown to be faster than BBC and it has a simpler formatting than VAL. WAH
 allows compression of vectors such that all information the vector gives is
-encoded, allows compressed vectors to be queried. A complete description of WAH
+encoded, and it allows compressed vectors to be queried. A complete description of WAH
 is given by \cite{wu2001}.
 %
 \subsection{Bitmap Vectors}
@@ -70,9 +70,9 @@ the data they index. Slaves save each vector as a file. The vector is broken up
 into 64-bit pieces, and each piece is saved sequentially into the file.
 %
 \subsection{Consistent Hashing}
-To determine on which two nodes a given vector is located (or should be
-located, if the identifier is new to the system) we use an algorithm known as
-consistent hashing. Consistent hashing was introduced by
+To determine on which two slaves a given vector is located (or should be
+located, if the vector identifier is new to the system) we use an algorithm known as
+\term{consistent hashing}. Consistent hashing was introduced by
 Karger~et~al.~\cite{karger1997} and can be understood conceptually as follows.
 \par
 Each slave node is assigned a point on a circle where each point corresponds
@@ -82,8 +82,8 @@ identifier \(i\) is calculated as
     \func{h}{i} \coloneqq \func{SHA1}{i} \bmod{2^{64}}.
 \end{equation*}
 To determine which nodes (should) contain the vector \(k\), walk clockwise
-from the point \(\func{h}{k}\) until reaching a node node (the
-\term{primary} node), and continue walking until reaching the next node node
+from the point \(\func{h}{k}\) until reaching a slave node (the
+\term{primary} node), and continue walking until reaching the next node
 (the \term{backup} node). Once the primary and backup nodes have been
 determined, return the set comprised of those two nodes. This procedure is
 represented visually in Figure~\ref{fig:ring-hash-process} and formalized in
@@ -96,8 +96,8 @@ tree, and determining the next node is given by the algorithms
 \procedure{Recur-Succ} (Algorithm~\ref{alg:recur-succ}
 \cite{bstPredecessorSuccessor}). When the system is initialized, each node
 is assigned a nonnegative integer as an identifier. Each node of the tree is
-associated with a node in the system, and is identified by the corresponding
-node's id. After the identifiers are assigned, they are inserted into the
+associated with a slave in the system, and is identified by the corresponding
+slave's id. After the identifiers are assigned, they are inserted into the
 tree. Each node has pointers to its left child, right child, and parent
 (accessible via the functions \procedure{Left}, \procedure{Right} and
 \procedure{Par}, respectively). If a node does not have a parent or a child,
@@ -179,23 +179,23 @@ that pointer will hold the value \(null\). The algorithms for
 \subsection{Two-Phase Commit}
 After we had decided on a method for determining \emph{where} to store data,
 we needed a method of ensuring that the data actually arrived at the
-appropriate node. To do this, we used the Two-Phase Commit protocol (2PC).
+appropriate slaves. To do this, we used the Two-Phase Commit protocol (2PC).
 Before committing a vector to a slave, the master checks that both slaves are
 available: if so, the vector is sent to both, if either is unavailable, the
-inaccessible node is removed from the system and the commit of the vector is
+inaccessible slave is removed from the system and the commit of the vector is
 restarted. \cite{tanenbaum2017}
 %
 \subsection{Fault Tolerance}
 The primary reason for using consistent hashing is for fault tolerance. While
-waiting for messages from the DBMS, the master pings each slave to ensure that
-each slave node is still online. If it does not hear back from a slave after a
+waiting for messages from the DBMS, the master checks the status of its slaves
+by pinging each. If it does not hear back from a slave after a
 reasonable length of time (one second in our system), it assumes that the slave
-is out of commission, and reallocates the vectors using \procedure{Reallocate}
+is out of commission, and reallocates the slave's vectors using \procedure{Reallocate}
 (Algorithm~\ref{alg:reallocate}). In each node in the tree we store the
-identifiers of the vectors on its associated slave, specifically for this
+identifiers of the vectors on the associated slave, specifically for this
 purpose.
 \par
-An example of this procedure can be seen in Figure~\ref{alg:reallocate}. There,
+An example of this procedure can be seen in Figure~\ref{fig:vector-reallocation}. There,
 node \(F\) has failed, and the master had determined that vectors must be
 reallocated. The vectors that must be reallocated are those for which \(F\) was
 the primary location and those for which \(F\) was the backup location. First,
@@ -222,15 +222,15 @@ communicate its primary vectors to the successor. Likewise, since the successor
 node now holds the slave's primary vectors alongside its own, it must send the
 slave's primary vectors to its successor as a backup.
 \par
-Consistent hashing is preferable to using a hash-mod-n technique, an algorithm
+Consistent hashing is preferable to using a hash-mod-n algorithm,
 whose hash function modulus is the number of nodes. When the system changes
-while using the hash-mod-n technique, it is possible that every single vector
+while using the hash-mod-n algorithm, it is possible that every single vector
 would have to be remapped. This remapping requires significantly more message
-passing than are used in the \procedure{Reallocate} function. This is because,
+passing than the \procedure{Reallocate} function. This is because
 when a slave node is removed while using the hash-mod-n technique, the primary
-locations of potentially every vector changes, thus requiring us to remap every
+location of every vector has the potential to change, thus requiring the system to remap every
 single vector in the worst case. \cite{kleppmann2017} While hash-mod-n requires
-\(\func{O}{K}\) remappings, where \(K\) is the number of keys, consistent
+\(\func{O}{K}\) remappings, where \(K\) is the number of vector identifiers, consistent
 hashing only requires \(\func{O}{K/n}\) remappings where \(n\) is the number of
 slaves. \cite{karger1997}
 %
@@ -264,13 +264,13 @@ slaves. \cite{karger1997}
 Our system is designed to handle \term{range queries}. In this context, a range
 query is a query written as a number of ranges which are \code{AND}ed together.
 Each range is given as a pair of vector identifiers specifying the first and
-last vector in a range. Within these ranges, the vectors are \code{OR}ed
-together. An example of a range query is \code{R:[2,3]\&[6,7]} which would,
+last vector in the range. Within these ranges, the vectors are \code{OR}ed
+together. An example of a range query is \code{R:[2,3]\&[4,6]} which would,
 in the context of Tables~\ref{table:census-salary} and \ref{table:census-age},
-correspond to a SQL query of the form
-\code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~<~50}.
+correspond to the SQL query
+\code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~<~50} given in the introduction.
 Using the bitmap index, the query can be satisfied by evaluating the expression
-\((v_2 \lor v_3) \land (v_4 \lor v_5 \lor v_6)\) where the \(v_i\)s are vector identifiers.
+\((v_2 \lor v_3) \land (v_4 \lor v_5 \lor v_6)\).
 To carry out a query, we first create a plan that tells us which slave nodes
 contain the requisite vectors, and then perform that query.
 %
@@ -280,27 +280,25 @@ inputs. The first input, \(tree\), is the red-black tree used in consistent
 hashing to determine which two nodes contain a given vector identifier, and the
 second input, \(r\), is the replication factor of the system.
 The third input,
-\[R = [\tuple{v_0, v_1}, \tuple{v_1, v_2}, \ldots, \tuple{v_n, v_m}],\]
-is a list of tuples where each tuple is comprised of the first and last vectors
-in a range. Each \(v_k\) is a vector identifier where \(0 \leq k \leq m\).
-Given the tuple \(\tuple{v_i, v_j} \in R\), we require that
-\(0 \leq i \leq j \leq n \leq m\). Sorting is performed so that, in each
+\(R\),
+is a list of pairs where each pair \((i,j)\in R\) represents a range starting at
+\(v_i\) and ending at \(v_j\), where \(i\leq j\). Sorting of \(subpaths\) is performed so that, in each
 portion of the query, slaves do not have to be visited more than once, making
-query processing linear with respect to the number of slave nodes. Because
+query processing linear with respect to the number of slaves. Because
 \(\lor\) is commutative, the order in which the vectors are \code{OR}ed
 together within the subquery does not matter. Each range of the query may be
 run concurrently. In an effort to distribute the work to all slaves as evenly
 as possible, we choose a random return value from \procedure{Consistent-Hash}
 as the slave to visit for each of the given vectors. This selection is
-determined using the \procedure{Random} function which takes two integers
-arguments, \(i\) and \(j\), and returns a random integer in the range
-\([i, j)\).
+determined using the \procedure{Random} function which takes two integer
+arguments, \(a\) and \(b\), and returns a random integer in the range
+\([a, b)\).
 \par
 The return value of \procedure{Range-Query-Plan} is a set of \term{subqueries},
-\(Q\), where each subquery comprises one or more tuples of the form
-\(\tuple{slave\_id,vector\_id}\). These tuples are used in the query execution
+\(Q\), where each subquery comprises one or more pairs of the form
+\(\tuple{slave\_id,vector\_id}\). These pairs are used in the query execution
 algorithms to determine which slaves to visit and which vectors to obtain. For
-example, the tuple \(\tuple{3, 2}\) indicates that \(v_2\) should be retrieved
+example, the pair \(\tuple{3, 2}\) indicates that \(v_2\) should be retrieved
 from slave 3.
 %
 \begin{algorithm}
@@ -331,17 +329,17 @@ Algorithm~\ref{alg:query-planning} and then delegates each subquery to its
 slaves using Algorithm~\ref{alg:slave-subquery}.
 \par
 Algorithm~\ref{alg:slave-subquery} is an RPC that takes a node identifier,
-denoting the slave that the function is run on, and a set of pairs, \(\gamma\),
-representing a subquery. The slave iterates over the tuples referencing vectors
-it contains, and \code{OR}s them together using WAH, as denoted by \(\lor\).
-\(\func{\procedure{Retrieve-Vector}}{k}\) returns the value of vector \(k\).
+denoting the slave that the function is run on, and a set of pairs
+representing a subquery. The slave iterates over the pairs referencing vectors
+it contains, and \code{OR}s the vectors together using WAH, as denoted by \(\lor\).
+\(\func{\procedure{Retrieve-Vector}}{k}\) returns the value of vector \(v_k\).
 Once the slave has operated on all requested vectors it holds, it makes an RPC
-to the slave in the subsequent tuple, recursively satisfying the remainder of
+to the slave in the subsequent pair, recursively satisfying the remainder of
 the subquery.
 \par
 Algorithm~\ref{alg:master-query-root} takes a complete query, divides the work
 among the slaves, \code{AND}s the results of the subqueries (denoted by
-\(\lambda\)) together, and returns the result to the DBMS.
+\(R\)) together, and returns the result to the DBMS.
 %
 \begin{algorithm}
     \begin{algorithmic}

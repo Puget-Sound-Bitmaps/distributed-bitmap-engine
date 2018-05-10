@@ -6,9 +6,9 @@ census data (see Table~\ref{table:census-relational} for a small set of example
 data). If we were to search for all Americans with salaries of at least
 \SI{100000}[\$]{} who are also under the age of 50 (equivalent to the SQL query
 \code{SELECT * FROM CENSUS WHERE SALARY~>~\$100000 AND AGE~<~50}), we would have to scan each
-line (tuple) in the database sequentially. Even on fast computers a read from
-disk can take upwards of \SI{15}{\milli\second} and the US population is
-roughly \num{326000000} necessitating a \SI{15}{\milli\second} read for each tuple. As a result, this query could take
+of the \num{326000000} lines (\term{tuples}) of the database sequentially, since each line corresponds
+to a unique person. Each line read requires a separate disk access which can take upwards of \SI{15}{\milli\second},
+even on fast computers. As a result, this query could take
 \(\num{326 000 000} \times \SI{15}{\milli\second} = \SI{1400}{\hour}\)
 which is just under two months; obviously queries cannot take this long.
 \begin{table}[H]
@@ -26,24 +26,23 @@ which is just under two months; obviously queries cannot take this long.
     \end{tabular}
 \end{table}
 \par
-One method of improving query execution time is to use a \term{bitmap index}. A
+Using a \term{bitmap index} is one method for improving query execution time. A
 bitmap index is a collection of binary strings that represent truth values
 pertaining to a relational database (see Tables~\ref{table:census-salary} and
-\ref{table:census-age} for possible indexes of age and salary information in
+\ref{table:census-age} for a possible index of the age and salary data in
 Table~\ref{table:census-relational}).  In this paper we refer to each string as
-a \term{bitmap vector}. Queries on such a bitmap index can satisfy common
+a \term{bitmap vector}. Queries on a bitmap index can satisfy common
 database queries---such as the SQL query given above---and are very efficient
 as they consist primarily of machine-level bitwise operators. To satisfy the query,
 we first find all Americans who make over \SI{100000}[\$]{} by \code{OR}ing
-vectors \(v_3\) (Americans with salaries between \SI{100000}[\$]{} and
-\SI{300000}[\$]{}) and \(v_4\) (Americans with salaries over \SI{300000}[\$]{}).
+vectors \(v_2\) (Americans with salaries between \SI{100000}[\$]{} and
+\SI{300000}[\$]{}) and \(v_3\) (Americans with salaries over \SI{300000}[\$]{}).
 Second, we find all Americans under the age of 50 by \code{OR}ing bitmap vectors
-\(v_4\), \(v_5\), and \(v_6\) which will include all Americans under the age of 66 (which is a superset of the tuples relevant to the query). After \code{AND}ing together the two ranges, we
-will be left with a bitmap vector where the rows with a value of \code{1} correspond
-to Americans who \emph{may} satisfy our original query. To find the exact query return value,
-the original tuples corresponding to the rows with \code{1}s must be scanned.
-While this may result in some tuples being scanned that do not satisfy the query,
-the number of tuples scanned is \emph{significantly} fewer than in a naive sequential scan.
+\(v_4\), \(v_5\), and \(v_6\) which will include all Americans under the age of 66 (which is a superset of the tuples relevant to the query). After \code{AND}ing together the two ranges, the resulting bitmap vector will have a value of \code{1} in rows corresponding
+to Americans who \emph{may} be included in the result of the SQL query. To find the exact query return value,
+the original tuples corresponding to the rows with \code{1}s must be read.
+While this may result in some tuples that do not satisfy the query being scanned,
+the total number of tuples scanned is \emph{significantly} fewer than in a naive sequential scan.
 \begin{table}[H]
     \centering
     \caption{Bitmap Index for Salary (\(S\), in thousands of dollars) in Table~\ref{table:census-relational}}
@@ -78,14 +77,14 @@ the number of tuples scanned is \emph{significantly} fewer than in a naive seque
 \par
 A system comprising multiple computers (\term{nodes}) is known as a
 \term{distributed system}. In comparison, a system containing only one node is
-called a \term{centralized system}. The principal advantages of using a
-distributed system over a centralized system are twofold: first, there is no
+called a \term{centralized system}. There are two principal advantages of using a
+distributed system over a centralized system: first, there is no
 single point of failure, and second, the storage capacity of the system in
-aggregate can reach sized infeasible for a centralized system. Should an
-individual node in a distributed system, the data can be redistributed such
+aggregate can reach a size infeasible for a centralized system. Should an
+individual node in a distributed system fail, the data can be redistributed such
 that there is again a backup of all data in the system. Such resilience to
 hardware (or software) failure cannot be be obtained in a centralized system,
-and as a results, a failure would necessitate regenerating the entire index.
+in which node failure would necessitate regenerating the entire index.
 \par
 The purpose of our system (hereafter called DBIE) is to expand upon the
 functionality of Chiu, et al.'s bitmap engine by distributing a set of bitmap
@@ -93,9 +92,9 @@ vectors, and the work of executing bitmap queries, among multiple nodes. Our
 system is designed to be capable of recovering from single-node failure at any
 point during execution. Our approach was to handle vector input and query
 requests from a database management system (DBMS) via a \term{master}
-\term{process} (a program in execution) on the same node as the
-DBMS. In order to store vectors and satisfy queries, the master sends
-replicas of the vector to two distinct nodes (\term{slaves}), and to satisfy
+\term{process}. A process is a program in execution. The master and DBMS
+processes run on the same node. When asked to store a vector, the master sends
+replicas of the vector to two distinct nodes (\term{slaves}). To satisfy
 queries, the master delegates work to the slaves that have the requisite
 vectors.
 \par

@@ -3,8 +3,8 @@ We have implemented a distributed system that reliably stores a bitmap index
 and supports distributed queries on the index. The system uses WAH bitmap
 compression, Two-Phase Commit to ensure vectors arrive at their destination
 slaves, and consistent hashing for determining the locations of bitmap vectors.
-The system also provides an easily extendable framework for further research on
-in interplay between distributed systems and bitmap indexes. Experimental
+The system also provides a framework that is easily extendable for further research on
+the interplay between distributed systems and bitmap indexes. Experimental
 results confirm that query execution time in the distributed system is slower
 than on a centralized system, however the benefits of fault tolerance and
 increased storage capacity in aggregate provide capabilities not available in a
