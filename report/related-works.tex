@@ -1,1 +1,14 @@
 \section{Related Works}
+Dynamo \cite{decandia2007} is a key-value store designed by Amazon. DBIE drew
+inspiration from Dynamo in the choice of hashing algorithm used to locate
+vectors, but it is different from Dynamo (and open source distributed data
+stores such as Voldemort \cite{voldemort} and Redis \cite{redis}) because it
+was designed to process queries using multiple nodes, instead of just storing
+and retrieving data.
+\par
+Pilosa \cite{pilosa} is a distributed bitmap engine built by the eponymous
+company in 2017. It uses the Roaring Bitmaps \cite{roaring} compression
+algorithm, was written in the Go programming language, and runs each node in a
+cluster in lieu of using the master-slave model. Pilosa also allows data
+replication on multiple nodes. Due to architectural differences,
+Pilosa was not a large influence upon the design of DBIE.

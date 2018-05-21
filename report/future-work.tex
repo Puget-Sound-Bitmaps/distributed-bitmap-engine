@@ -1,1 +1,14 @@
 \section{Future Work}
+In continuing our development of DBIE, we would like to allow the addition of new slaves
+(including ones that were previously down) into the system while it is running.
+We would like to finish the work we have started by implementing more
+query plan algorithms and testing their efficiency. We also intend to test
+fault tolerance more rigorously through a series of experiments in which
+slave nodes fail at random times. Another optimization might be to short
+circuit a query that may \code{OR} more vectors, but has obtained a partial
+vector that is entirely \code{1}s. Furthermore, we can improve the
+\(\func{O}{\log{N}}\) performance given by consistent hashing by using dynamic
+partitioning of the bitmap vectors, as described in \cite{kleppmann2017}.
+The system could also be modified to allow the DBMS and master to reside on separate nodes, making
+\code{PUT} and \code{GET} RPCs. We would also like to make the system
+compatible with a real DBMS.

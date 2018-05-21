@@ -1,0 +1,32 @@
+\begin{tikzpicture}
+% Draw States
+\USA[every state={draw=white, ultra thick, fill=black!10}]
+
+% Draw DBMS
+\node (DBMS) [label=above:{DBMS}] at (WA) {
+    \includegraphics[width=0.5cm]{imgs/user.png}
+    \includegraphics[width=0.5cm]{imgs/dbms.png}
+};
+
+% Draw Master
+\node (M) [label=above:{Master}] at (SD) {
+    \includegraphics[width=0.5cm]{imgs/node.png}
+};
+
+% Draw Slaves
+\node (A) [label=above:{Slave A}] at (NV) {\includegraphics[width=0.5cm]{imgs/node.png}};
+\node (B) [label=left:{Slave B}] at (AZ) {\includegraphics[width=0.5cm]{imgs/node.png}};
+\node (C) [label=right:{Slave C}] at (AR) {\includegraphics[width=0.5cm]{imgs/node.png}};
+\node (D) [label=right:{Slave D}] at (OH) {\includegraphics[width=0.5cm]{imgs/node.png}};
+\node (E) [label=above:{Slave E}] at (ME) {\includegraphics[width=0.5cm]{imgs/node.png}};
+\node (F) [label=below:{Slave F}] at (TX) {\includegraphics[width=0.5cm]{imgs/node.png}};
+
+% Draw Connecting Lines
+\draw [thick] (M) -- (DBMS);
+\draw [thick] (M) -- (A);
+\draw [thick] (M) -- (B);
+\draw [thick] (M) -- (C);
+\draw [thick] (M) -- (D);
+\draw [thick] (M) -- (E);
+\draw [thick] (M) -- (F);
+\end{tikzpicture}

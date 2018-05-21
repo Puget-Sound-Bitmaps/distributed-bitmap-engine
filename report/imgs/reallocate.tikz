@@ -1,0 +1,63 @@
+\begin{tikzpicture}
+    \draw (0,0) circle (2);
+
+    \node (A)
+        [draw, shape=circle, inner sep=1, fill=white, text=black]
+        at (95:2.5) {\(A\)};
+    \node (A-in) at (95:1.75) {};
+    \node (B)
+        [draw, shape=circle, inner sep=1, fill=white, text=black]
+        at (15:2.5) {\(B\)};
+    \node (B-in)
+        [draw, shape=circle, inner sep=1, color=white, fill=white, text=black]
+        at (15:1.5) {\(M_1\)};
+    \node (C)
+        [draw, shape=circle, inner sep=1, fill=white, text=black]
+        at (-70:2.5) {\(C\)};
+    \node (C-in)
+        [draw, shape=circle, inner sep=1, color=white, fill=white, text=black]
+        at (-70:1.5) {\(M_2\)};
+    \node (D)
+        [draw, shape=circle, inner sep=1, fill=white, text=black]
+        at (-150:2.5) {\(D\)};
+    \node (D-in) at (-150:1.75) {};
+    \node (E)
+        [draw, shape=circle, inner sep=1, fill=white, text=black]
+        at (-200:2.5) {\(E\)};
+    \node (E-in) at (-200:1.75) {};
+    \node (F)
+        [draw, star, star points=13, star point ratio=2,
+            inner sep=1, fill=red, text=black]
+        at (60:2.5) {\(F\)};
+    \node (F-in) at (60:1.75) {};
+
+    \draw (A) -- (A-in);
+    \draw (B) -- (B-in);
+    \draw (C) -- (C-in);
+    \draw (D) -- (D-in);
+    \draw (E) -- (E-in);
+    \draw (F) -- (F-in);
+
+
+    \node (1)
+        [draw, fill=orange, diamond, scale=0.5, label=above:{\(v_1\)}]
+        at (70:2) {};
+    \node (2)
+        [draw, fill=orange, diamond, scale=0.5, label=above:{\(v_2\)}]
+        at (85:2) {};
+    \node (3)
+        [draw, fill=orange, diamond, scale=0.5, label=above:{\(v_3\)}]
+        at (30:2) {};
+    \node (4)
+        [draw, fill=orange, diamond, scale=0.5, label=above:{\(v_4\)}]
+        at (110:2) {};
+    \node (5)
+        [draw, fill=orange, diamond, scale=0.5, label=above:{\(v_5\)}]
+        at (130:2) {};
+
+    \draw [->, thick, dashed] (1) -- (C-in);
+    \draw [->, thick, dashed] (2) -- (C-in);
+
+    \draw [->, thick, dotted] (4) -- (B-in);
+    \draw [->, thick, dotted] (5) -- (B-in);
+\end{tikzpicture}

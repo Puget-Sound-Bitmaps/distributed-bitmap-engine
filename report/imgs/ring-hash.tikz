@@ -1,0 +1,28 @@
+\begin{tikzpicture}
+    \draw (0,0) circle (2);
+    \draw (95:1.75) -- (95:2.5) node
+        [draw, shape=circle, inner sep=1, fill=white, text=black] {\(A\)};
+    \draw (15:1.75) -- (15:2.5) node
+        [draw, shape=circle, inner sep=1, fill=white, text=black] {\(B\)};
+    \draw (-70:1.75) -- (-70:2.5) node
+        [draw, shape=circle, inner sep=1, fill=blue, text=white] {\(C\)};
+    \draw (-150:1.75) -- (-150:2.5) node
+        [draw, shape=circle, inner sep=1, fill=red, text=white] {\(D\)};
+    \draw (-200:1.75) -- (-200:2.5) node
+        [draw, shape=circle, inner sep=1, fill=white, text=black] {\(E\)};
+    \draw (-300:1.75) -- (-300:2.5) node
+        [draw, shape=circle, inner sep=1, fill=white, text=black] {\(F\)};
+
+    \node (vec)
+        [draw, fill=orange, diamond, scale=0.5, label=right:{\(v_n\)}]
+        at (0:2) {};
+
+    \draw [thick, color=orange, ->] (0:0) node
+        [draw, shape=circle, inner sep=1, color=white, fill=white, text=black]
+        {\footnotesize \(\func{h}{v_n} = 2^{62}\)} -- (0:1.75);
+
+    \draw [thick, color=blue, dashed, ->] (0:1.75) arc (0:-70:1.75);
+
+    \draw [thick, color=red, dotted, ->] (-70:1.75) arc (-70:-150:1.75);
+
+\end{tikzpicture}

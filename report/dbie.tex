@@ -1,14 +1,51 @@
-\documentclass[letterpaper,10pt,draft]{article}
+\documentclass[letterpaper,10pt]{article}
 
-\usepackage{aaai}
+\usepackage{aaai}\nocopyright
 \bibliographystyle{aaai}
 
 \usepackage{times}
 \usepackage{helvet}
 \usepackage{courier}
 
-\title{Distributed Bitmap Index Engine}
-\author{{Jahrme Risner}\and{Sam Burdick}\\Department of Mathematics and Computer Science\\University of Puget Sound}
+\usepackage[hyphens]{url}
+\usepackage{mathtools}
+
+\usepackage{caption}
+\usepackage{float}
+\usepackage{booktabs}
+
+\usepackage{graphicx}
+\graphicspath{{./imgs/}}
+
+\usepackage[binary-units=true]{siunitx}
+\DeclareSIUnit{\nothing}{\relax}
+
+\usepackage{tikz, tikzscale}
+\usetikzlibrary{shapes,decorations}
+\usepackage{pgfplots, pgfplotstable}
+\pgfplotsset{compat=1.15}
+\input{imgs/USA-map.tikz}
+
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algcompatible}
+\usepackage[noend]{algpseudocode}
+\newcommand{\algorithmautorefname}{Algorithm}
+\newcommand{\Break}{\textbf{break}}
+
+\newcommand{\term}[1]{\textit{#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\procedure}[1]{\textsc{#1}}
+\newcommand{\func}[2]{\ensuremath{\mathrm{#1}(#2)}}
+\newcommand{\set}[1]{\ensuremath{\left\{#1\right\}}}
+\newcommand{\tuple}[1]{\ensuremath{\left(#1\right)}}
+
+\title{A Distributed Bitmap Index Engine}
+\author{
+    {Jahrme Risner}\and{Sam Burdick}\\
+    Department of Mathematics and Computer Science\\
+    University of Puget Sound
+}
 
 \begin{document}
 \maketitle
@@ -20,6 +57,7 @@
 \input{conclusion}
 \input{future-work}
 \input{acknowledgements}
-\input{references}
-\input{appendices}
+% \input{appendices}
+% \nocite{*} % Use references even if not cited, remove this before submission.
+\bibliography{dbie}
 \end{document}
