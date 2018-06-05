@@ -6,3 +6,7 @@ scripts/servers.py
 
 # Python cache.
 __pycache__/
+
+# local files
+start.sh
+stop.sh

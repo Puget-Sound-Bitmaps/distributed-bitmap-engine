@@ -1,4 +1,4 @@
-import sys, os, string, threading, paramiko
+import sys, os, string, threading, paramiko, time
 
 #########
 # SETUP #
@@ -59,6 +59,8 @@ for username, hostname in slaves:
         # Remove local copy if it exits.
         "rm -rf {dir}".format(dir=(git_dir.format(username=username))),
 
+        "sudo apt-get --yes install git",
+
         # Clone a clean copy.
         "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=(git_dir.format(username=username))),
 
@@ -102,6 +104,8 @@ master_setup = [
     # Remove local copy if it exits.
     "rm -rf {dir}".format(dir=(git_dir.format(username=username))),
 
+    "sudo apt-get --yes install git",
+
     # Clone a clean copy.
     "git clone --recurse-submodules -b {b} {url} {dir}".format(b=git_branch,url=git_url,dir=(git_dir.format(username=username))),
 
@@ -139,7 +143,7 @@ def start(hostname, username, kind):
     sshT.connect(hostname=hostname, username=username, pkey=pkey)
 
     if kind == "master":
-        kind = "dbms 0"
+        kind = "dbms 1"
 
     stdin, stdout, stderr = sshT.exec_command(start_cmd.format(dir=(git_dir.format(username=username)), type=kind))
 
@@ -158,10 +162,10 @@ for username, hostname in slaves:
     t.start()
     threads.append(t)
 
-for username, hostname in [servers.master_node]:
-    t = threading.Thread(target=start, args=(hostname, username, "master"))
-    t.start()
-    threads.append(t)
+#for username, hostname in [servers.master_node]:
+#    t = threading.Thread(target=start, args=(hostname, username, "master"))
+#    t.start()
+#    threads.append(t)
 
 for t in threads:
     t.join()
