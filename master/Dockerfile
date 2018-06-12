@@ -28,9 +28,8 @@ RUN apt-get --yes install make
 RUN apt-get --yes install git
 
 # source code
-RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine /dbie/
+RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine -b docker /dbie/
 
 # run master
 WORKDIR /dbie/distributed-system
 CMD ["make", "basic_test"]
-
