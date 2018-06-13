@@ -11,12 +11,12 @@ RUN apt-get auto-clean --yes
 # install dependencies
 
 # java
-RUN apt-get --yes install default-jdk
+#RUN apt-get --yes install default-jdk
 # python
-RUN apt-get --yes install python
-RUN apt-get --yes install python-dev
-RUN apt-get --yes install python3
-RUN apt-get --yes install python3-dev
+#RUN apt-get --yes install python
+#RUN apt-get --yes install python-dev
+#RUN apt-get --yes install python3
+#RUN apt-get --yes install python3-dev
 # C compiler
 RUN apt-get --yes install gcc
 # RPC
