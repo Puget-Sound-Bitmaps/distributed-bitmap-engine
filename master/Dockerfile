@@ -1,5 +1,5 @@
 FROM ubuntu:16.04
-WORKDIR /
+WORKDIR /root
 EXPOSE 80
 
 RUN apt-get update --yes
@@ -21,15 +21,20 @@ RUN apt-get --yes install python3-dev
 RUN apt-get --yes install gcc
 # RPC
 RUN apt-get --yes install libc-dev-bin
+RUN apt-get --yes install rpcbind
 # OpenSSL
 RUN apt-get --yes install libssl-dev
 # Shell
 RUN apt-get --yes install make
 RUN apt-get --yes install git
+RUN apt-get --yes install vim
 
 # source code
-RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine -b docker /dbie/
+RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine -b docker
 
-# run master
-WORKDIR /dbie/distributed-system
-CMD ["make", "basic_test"]
+# vimrc
+RUN git clone https://github.com/smburdick/dotfiles.git
+RUN ln -s dotfiles/.vimrc .vimrc
+
+# prepare to launch node
+RUN rpcbind
