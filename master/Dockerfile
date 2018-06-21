@@ -28,13 +28,17 @@ RUN apt-get --yes install libssl-dev
 RUN apt-get --yes install make
 RUN apt-get --yes install git
 RUN apt-get --yes install vim
+RUN apt-get --yes install valgrind
 
 # source code
 RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine -b docker
-
+# get updates
+WORKDIR /root/distributed-bitmap-engine
+CMD ["git pull"]
+WORKDIR /root
 # vimrc
 RUN git clone https://github.com/smburdick/dotfiles.git
 RUN ln -s dotfiles/.vimrc .vimrc
 
 # prepare to launch node
-RUN rpcbind
+CMD ["rpcbind"]
