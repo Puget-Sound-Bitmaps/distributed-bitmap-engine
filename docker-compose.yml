@@ -1,0 +1,10 @@
+version: "3"
+services:
+  master: # TODO: grab source image from Docker repo.
+    build: ./master
+    ports:
+      - "4000:4000"
+  slave:
+    build: ./slave
+    ports:
+      - "8000:8000"

@@ -16,8 +16,8 @@ DEPENDFILE=$HOME/.dbe.checked-dependencies
 touch -a $UPDATEFILE
 touch -a $DEPENDFILE
 
-# We only run updates if it has been at least one day since we last checked.
-if test `find $UPDATEFILE -mmin +1440`
+# We only run updates if it has been at least 30 days since we last checked.
+if test `find $UPDATEFILE -mmin +43200`
 then
     echo "Ensuring System is Up to Date"
     sudo apt-get --yes update
@@ -30,8 +30,8 @@ else
     echo "Assuming System is Up to Date"
 fi
 
-# We only check dependencies if it has been at least one day since we last checked.
-if test `find $DEPENDFILE -mmin +1440`
+# We only check dependencies if it has been at least 30 days since we last checked.
+if test `find $DEPENDFILE -mmin +43200`
 then
     echo "Ensuring System Has Dependencies"
     sudo apt-get --yes install default-jdk  # Java
@@ -42,6 +42,7 @@ then
     sudo apt-get --yes install python3-dev  # Python
 
     sudo apt-get --yes install gcc          # C Compiler
+    sudo apt-get --yes install rpcbind      # RPC Bind
     sudo apt-get --yes install libc-dev-bin # RPCgen
     sudo apt-get --yes install libssl-dev   # OpenSSL
     sudo apt-get --yes install make         # Make
