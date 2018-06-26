@@ -151,13 +151,12 @@ that pointer will hold the value \(null\). The algorithms for
             \If{$root = null$}
                 \State \Return $succ$
             \ElsIf{$key = \func{h}{root.id}$}
-                \State $succ \gets \Call{Right}{root}$
-                \If{$succ = null$}
-                    \State $succ \gets root$
+                \If{$\Call{Right}{root} = null$}
                     \While{$\Call{Par}{succ} \neq null \land \func{h}{succ} < key$}
                         \State $succ \gets \Call{Par}{succ}$
                     \EndWhile
                 \Else
+                    \State $succ \gets \Call{Right}{root}$
                     \While{$\Call{Left}{succ} \neq null$}
                         \State $succ \gets \Call{Left}{succ}$
                     \EndWhile
