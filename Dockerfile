@@ -13,9 +13,9 @@ RUN apt-get auto-clean --yes
 # java
 #RUN apt-get --yes install default-jdk
 # python
-#RUN apt-get --yes install python
+RUN apt-get --yes install python
 #RUN apt-get --yes install python-dev
-RUN apt-get --yes install python3
+#RUN apt-get --yes install python3
 #RUN apt-get --yes install python3-dev
 # C compiler
 RUN apt-get --yes install gcc
@@ -26,14 +26,14 @@ RUN apt-get --yes install rpcbind
 RUN apt-get --yes install libssl-dev
 # Shell
 RUN apt-get --yes install make
-#RUN apt-get --yes install git
+RUN apt-get --yes install git
 # for grabbing my vimrc. git takes longer to install
 RUN apt-get --yes install vim
 RUN apt-get --yes install valgrind
 
 # source code
-COPY . distributed-bitmap-engine/
-#RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine
+#COPY . distributed-bitmap-engine/
+RUN git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine -b dev
 
 # vimrc
 ADD https://raw.githubusercontent.com/smburdick/dotfiles/master/.vimrc .vimrc
