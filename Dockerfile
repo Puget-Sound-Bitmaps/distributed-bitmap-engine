@@ -35,3 +35,5 @@ COPY . distributed-bitmap-engine/
 
 # vimrc
 ADD https://raw.githubusercontent.com/smburdick/dotfiles/master/.vimrc .vimrc
+
+WORKDIR /root/distributed-bitmap-engine
