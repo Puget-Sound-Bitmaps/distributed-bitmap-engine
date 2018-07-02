@@ -16,13 +16,12 @@ docker run -it master /bin/bash
 ## Running the system
 In each of your slave nodes:
 ```bash
-cd distributed-bitmap-engine/distributed-system
-make spawn_slave
+./start-slave.sh
 ```
 In the master node, you'll need to fill out `SLAVELIST` properly (each line is
 the IP address of each slave). Then run
 ```bash
-make tpc_test
+./tpc-test.sh
 ```
 in the same directory as the slave node to run the test on TPC-C data.
 ## Paper
