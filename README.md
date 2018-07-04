@@ -7,6 +7,7 @@ Be sure to check out the submodules:
 git clone --recurse-submodules https://github.com/Puget-Sound-Bitmaps/distributed-bitmap-engine.git
 ```
 ## Docker support
+[Docker image](https://hub.docker.com/r/samburdick/dbie/)<br>
 To run the application/experiments yourself, you can use Docker containers.
 This will put you into the ubuntu shell of a node:
 ```bash
@@ -14,18 +15,21 @@ docker build -t master . # Create master image, in top-level of repo
 docker run -it master /bin/bash
 ```
 ## Running the system
-In each of your slave nodes:
+It's important to note that running these commands has the side effect of
+generating a `SLAVELIST` file which contains the IP addresses of all the
+slaves. You'll need to modify these scripts or manually generate these lists
+if you're using different IP addresses.
+### Master node
+If you're using docker:
+```bash
+./tpc-test.sh n
+```
+where `n` is the number of nodes. **Make sure to spawn the master container first, and
+the remaining slaves.**
+### Slave node
 ```bash
 ./start-slave.sh
 ```
-In the master node, you'll need to fill out `SLAVELIST` properly (each line is
-the IP address of each slave). (If you're using Docker, you can do
-this automatically by running `./create-slavelist.sh n`, where `n` is
-the number of slave nodes.) Then run
-```bash
-./tpc-test.sh
-```
-in the same directory as the slave node to run the test on TPC-C data.
 ## Paper
 The corresponding capstone paper for this project can be found [here]
 (https://smburdick.github.io/dbie/submitted-paper.pdf).
