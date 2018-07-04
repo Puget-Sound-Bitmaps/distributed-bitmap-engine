@@ -36,13 +36,10 @@ COPY . distributed-bitmap-engine/
 # vimrc
 ADD https://raw.githubusercontent.com/smburdick/dotfiles/master/.vimrc .vimrc
 
-# .bashrc
-#RUN echo \
-#    'alias empq="ipcrm -q $(ipcs -q | grep 666 | tr -s " " | cut -d " " -f 2)"' \
-#    >> .bashrc
-
-#RUN echo THEIP=$(ifconfig | grep 'inet addr:'| grep -v '127.0.0.1' | tail -1 | cut -d: -f2 | awk '{ print $1}')
-#RUN     PS1="\[\033[01;31m\]\u@"$THEIP" \w $\[\033[00m\] ";
+ADD https://raw.githubusercontent.com/smburdick/dotfiles/master/.bash_profile \
+    .bash_profile
+RUN /bin/bash -c "source .bash_profile"
 
 WORKDIR /root/distributed-bitmap-engine
-RUN chmod 755 start-slave.sh tpc-test.sh distributed-system/vcnt.sh .setup.sh
+RUN chmod 755 start-slave.sh tpc-test.sh distributed-system/vcnt.sh .setup.sh \
+    create-slavelist.sh

@@ -19,7 +19,9 @@ In each of your slave nodes:
 ./start-slave.sh
 ```
 In the master node, you'll need to fill out `SLAVELIST` properly (each line is
-the IP address of each slave). Then run
+the IP address of each slave). (If you're using Docker, you can do
+this automatically by running `./create-slavelist.sh n`, where `n` is
+the number of slave nodes.) Then run
 ```bash
 ./tpc-test.sh
 ```
