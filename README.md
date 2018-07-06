@@ -18,14 +18,15 @@ docker run -it dbie /bin/bash
 It's important to note that running these commands has the side effect of
 generating a `SLAVELIST` file which contains the IP addresses of all the
 slaves. You'll need to modify these scripts or manually generate these lists
-if you're using different IP addresses.
+if you're using different IP addresses than those of Docker containers in
+the default bridge network. **Make sure to spawn the master container
+first, followed by the slaves.**
 ### Master node
 If you're using docker:
 ```bash
 ./tpc-test.sh n
 ```
-where `n` is the number of nodes. **Make sure to spawn the master container
-first, followed by the slaves.**
+where `n` is the number of nodes.
 ### Slave node
 ```bash
 ./start-slave.sh
