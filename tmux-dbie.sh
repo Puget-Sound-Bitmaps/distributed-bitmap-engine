@@ -24,7 +24,9 @@ if [[ $num_slaves -lt 2 ]] ; then
     exit 0
 fi
 
+# Kill master and slave containers
 docker stop `docker ps -q`
+#docker stop `docker ps -q | grep "^\(master$\)\|slave[[:digit:]]$"`
 tmux kill-session -t "dbie"
 # Create detached session named dbie with a shell window named master
 tmux new-session -s "dbie" -n "master" -d "$DOCKER_SHELL"
@@ -36,7 +38,7 @@ sleep 1
 for (( i=0; i<$num_slaves; i++ )); do
     tmux new-window -d -n "slave$i" "$DOCKER_SHELL"
     tmux send-keys -t "slave$i" \
-        "./create-slavelist.sh '$num_slaves'" Enter \
+        "./create-slavelist.sh 1024" Enter \
         "rpcbind && cd distributed-system/bin" Enter \
         "./slave" Enter
 done
@@ -46,7 +48,8 @@ let "sleep_time=$num_slaves/$st_denom"
 
 # Prep master
 # XXX: wait for all slaves to come online with sleep?
-tmux send-keys -t "master" \ # "sleep $sleep_time" Enter \
+tmux send-keys -t "master" \
+    "sleep 5" Enter \
     "time ./tpc-test.sh '$num_slaves'"
 
 # Attach to session

@@ -42,3 +42,4 @@ RUN make
 WORKDIR /root/distributed-bitmap-engine/
 RUN chmod 755 start-slave.sh tpc-test.sh distributed-system/vcnt.sh .setup.sh \
     create-slavelist.sh
+

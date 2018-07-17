@@ -10,3 +10,7 @@ __pycache__/
 # local files
 start.sh
 stop.sh
+exp-out
+
+# Vectors for testing
+tpc/vec/

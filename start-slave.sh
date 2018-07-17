@@ -1,6 +1,7 @@
 #!/bin/sh
 # create a slavelist for a large number of slaves
-./create-slavelist.sh 128
-cd distributed-system/
+./create-slavelist.sh 1024
+cd distributed-system/bin/
 rpcbind
-make spawn_slave
+./slave
+#make spawn_slave
