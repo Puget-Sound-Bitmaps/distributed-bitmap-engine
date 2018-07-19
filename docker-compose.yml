@@ -1,10 +1,12 @@
 version: "3"
 services:
-  master: # TODO: grab source image from Docker repo.
-    build: ./master
-    ports:
-      - "4000:4000"
+  master:
+    image: dbie_master:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-master
   slave:
-    build: ./slave
-    ports:
-      - "8000:8000"
+    image: dbie_slave:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-slave

@@ -1,0 +1,29 @@
+FROM ubuntu:16.04
+
+# Updates
+RUN \
+  apt-get update --yes && \
+  apt-get upgrade --yes && \
+  apt-get dist-upgrade --yes && \
+  apt-get auto-remove --yes && \
+  apt-get auto-clean --yes
+
+# Dependencies
+RUN apt-get install --yes \
+  gcc \
+  git \
+  libc-dev-bin \
+  libssl-dev \
+  make \
+  rpcbind
+
+# Source Code
+COPY . /root/distributed-bitmap-engine/
+
+# Scripts
+WORKDIR /root/distributed-bitmap-engine/scripts/
+RUN chmod 755 *.sh
+
+# Binaries
+WORKDIR /root/distributed-bitmap-engine/distributed-system/
+RUN make slave
