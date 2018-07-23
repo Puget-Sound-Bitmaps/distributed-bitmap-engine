@@ -1,4 +1,5 @@
 FROM ubuntu:16.04
+EXPOSE 80
 
 # Updates
 RUN \
@@ -18,12 +19,13 @@ RUN apt-get install --yes \
   rpcbind
 
 # Source Code
-COPY . /root/distributed-bitmap-engine/
-
-# Scripts
-WORKDIR /root/distributed-bitmap-engine/scripts/
-RUN chmod 755 *.sh
+COPY bitmap-engine /root/dbie/bitmap-engine
+COPY distributed-system /root/dbie/distributed-system
 
 # Binaries
-WORKDIR /root/distributed-bitmap-engine/distributed-system/
-RUN make slave
+WORKDIR /root/dbie/distributed-system/
+RUN chmod 755 *.sh
+RUN make slave SLAVELIST
+
+# Run on startup
+ENTRYPOINT ["make", "spawn_slave"]
