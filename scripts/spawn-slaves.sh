@@ -17,5 +17,7 @@ let "STOP=$START+$NUM_SLAVES"
 
 # Spawn slaves
 for (( i = $START; i < $STOP; i++ )); do
-	docker run -itd --name "dbie-slave-$i" dbie_slave
+	echo "dbie-slave-$i"
+	docker run -itd --name "dbie-slave-$i" dbie_slave bash 1> /dev/null
+	docker exec -itd "dbie-slave-$i" make spawn_slave
 done

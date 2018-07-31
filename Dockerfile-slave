@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:bionic
 EXPOSE 80
 
 # Updates
@@ -28,4 +28,4 @@ RUN chmod 755 *.sh
 RUN make slave SLAVELIST
 
 # Run on startup
-ENTRYPOINT ["make", "spawn_slave"]
+# ENTRYPOINT ["make", "spawn_slave"]

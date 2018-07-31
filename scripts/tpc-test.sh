@@ -5,26 +5,30 @@ if [[ $# < 1 ]]; then
 	exit 1
 fi
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
 # Semantic value
 NUM_SLAVES="$1"
 
 echo "Purging docker containers..."
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
+docker stop $(docker ps -aq) &> /dev/null
+docker rm $(docker ps -aq) &> /dev/null
 
 echo "Building docker images"
+cd $DIR/..
 docker-compose build
 
 echo "Starting master..."
-docker run -itd --name "dbie-master" dbie_master bash
-
-# Get scripts directory (for robustness)
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+docker run -itd \
+	--mount "type=bind,source=/home/jahrme/Documents/dbie-data/,destination=/root/dbie/dbie-data/" \
+	--name "dbie-master" dbie_master bash
 
 echo "Starting slaves..."
 bash $DIR/spawn-slaves.sh $NUM_SLAVES
 
 echo "Beginning test..."
-docker exec dbie-master bash create-slavelist.sh $NUM_SLAVES
 docker exec dbie-master rpcbind
-docker exec -it dbie-master make tpc_test
+
+docker exec dbie-master bash create-slavelist.sh $NUM_SLAVES
+docker exec -it dbie-master make start_dbms
+bash $DIR/get-csv.sh dbie-master
