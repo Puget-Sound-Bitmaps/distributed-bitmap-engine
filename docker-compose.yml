@@ -1,12 +1,14 @@
 version: "3"
 services:
-  master:
-    image: dbie_master:latest
+  dev:
+    image: dbie:dev
     build:
       context: .
-      dockerfile: Dockerfile-master
-  slave:
-    image: dbie_slave:latest
+      dockerfile: Dockerfile-dev
+  prod:
+    image: dbie:prod
+    depends_on:
+      - dev
     build:
       context: .
-      dockerfile: Dockerfile-slave
+      dockerfile: Dockerfile-prod

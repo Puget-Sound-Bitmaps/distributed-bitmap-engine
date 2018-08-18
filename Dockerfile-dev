@@ -1,5 +1,4 @@
 FROM ubuntu:bionic
-EXPOSE 80
 
 # Updates
 RUN \
@@ -16,7 +15,10 @@ RUN apt-get install --yes \
   libc-dev-bin \
   libssl-dev \
   make \
-  rpcbind
+  python3 \
+  rpcbind \
+  valgrind \
+  vim
 
 # Source Code
 COPY bitmap-engine /root/dbie/bitmap-engine
@@ -25,7 +27,4 @@ COPY distributed-system /root/dbie/distributed-system
 # Binaries
 WORKDIR /root/dbie/distributed-system/
 RUN chmod 755 *.sh
-RUN make slave SLAVELIST
-
-# Run on startup
-# ENTRYPOINT ["make", "spawn_slave"]
+RUN make all SLAVELIST

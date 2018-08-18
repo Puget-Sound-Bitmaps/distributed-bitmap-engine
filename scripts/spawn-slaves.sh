@@ -18,6 +18,7 @@ let "STOP=$START+$NUM_SLAVES"
 # Spawn slaves
 for (( i = $START; i < $STOP; i++ )); do
 	echo "dbie-slave-$i"
-	docker run -itd --name "dbie-slave-$i" dbie_slave bash 1> /dev/null
-	docker exec -itd "dbie-slave-$i" make spawn_slave
+	docker run -itd --name "dbie-slave-$i" dbie:prod bash 1> /dev/null
+	docker exec -itd "dbie-slave-$i" rpcbind
+	docker exec -itd "dbie-slave-$i" /root/slave
 done

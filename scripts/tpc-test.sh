@@ -21,7 +21,7 @@ docker-compose build
 echo "Starting master..."
 docker run -itd \
 	--mount "type=bind,source=/home/jahrme/Documents/dbie-data/,destination=/root/dbie/dbie-data/" \
-	--name "dbie-master" dbie_master bash
+	--name "dbie-master" dbie:prod bash
 
 echo "Starting slaves..."
 bash $DIR/spawn-slaves.sh $NUM_SLAVES
@@ -30,5 +30,5 @@ echo "Beginning test..."
 docker exec dbie-master rpcbind
 
 docker exec dbie-master bash create-slavelist.sh $NUM_SLAVES
-docker exec -it dbie-master make start_dbms
+docker exec -it dbie-master /root/dbms
 bash $DIR/get-csv.sh dbie-master
