@@ -9,6 +9,7 @@ RUN \
   apt-get auto-remove --yes && \
   apt-get auto-clean --yes && \
   apt-get install --yes \
+    libssl-dev \
     netbase \
     rpcbind \
   && rm -rf /var/lib/apt/lists/*
