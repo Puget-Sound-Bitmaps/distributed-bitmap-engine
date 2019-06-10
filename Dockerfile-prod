@@ -1,0 +1,28 @@
+FROM ubuntu:bionic
+WORKDIR /root/
+
+# Updates
+RUN \
+  apt-get update --yes && \
+  apt-get upgrade --yes && \
+  apt-get dist-upgrade --yes && \
+  apt-get auto-remove --yes && \
+  apt-get auto-clean --yes && \
+  apt-get install --yes \
+    libssl-dev \
+    netbase \
+    rpcbind \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=dbie:dev /root/dbie/distributed-system/bin/dbms \
+  /root/dbms
+COPY --from=dbie:dev /root/dbie/distributed-system/bin/master \
+  /root/master
+COPY --from=dbie:dev /root/dbie/distributed-system/bin/slave \
+  /root/slave
+COPY --from=dbie:dev /root/dbie/distributed-system/count-vectors.sh \
+  /root/count-vectors.sh
+COPY --from=dbie:dev /root/dbie/distributed-system/create-slavelist.sh \
+  /root/create-slavelist.sh
+COPY --from=dbie:dev /root/dbie/distributed-system/SLAVELIST \
+  /root/SLAVELIST

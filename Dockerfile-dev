@@ -1,0 +1,30 @@
+FROM ubuntu:bionic
+
+# Updates
+RUN \
+  apt-get update --yes && \
+  apt-get upgrade --yes && \
+  apt-get dist-upgrade --yes && \
+  apt-get auto-remove --yes && \
+  apt-get auto-clean --yes
+
+# Dependencies
+RUN apt-get install --yes \
+  gcc \
+  git \
+  libc-dev-bin \
+  libssl-dev \
+  make \
+  python3 \
+  rpcbind \
+  valgrind \
+  vim
+
+# Source Code
+COPY bitmap-engine /root/dbie/bitmap-engine
+COPY distributed-system /root/dbie/distributed-system
+
+# Binaries
+WORKDIR /root/dbie/distributed-system/
+RUN chmod 755 *.sh
+RUN make all SLAVELIST
